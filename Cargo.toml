@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-# I2C通信用（最新の1.x系を利用）
 linux-embedded-hal = "0.4"
-# BME280 センサー用ドライバ（存在する最新版）
 bme280-rs = "0.3.0"
+bevy = "0.18.1"
