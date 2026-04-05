@@ -17,7 +17,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_pressure_oversampling(Oversampling::Oversample1)
         .with_sensor_mode(SensorMode::Normal);
 
-    // & を消して config をそのまま渡す
     bme280.set_sampling_configuration(config)?;
 
     println!("Rustで計測を開始します（5秒おき）...");
