@@ -3,11 +3,13 @@ use bevy::prelude::*;
 #[cfg(target_os = "linux")]
 use linux_embedded_hal::{Delay, I2cdev};
 
-pub struct MySample {
+#[derive(Resource, Default, Debug)]
+pub struct WeatherData {
     pub temperature: f32,
     pub humidity: f32,
     pub pressure: f32,
 }
+
 pub struct Bme {
     #[cfg(target_os = "linux")]
     bme280: bme280_rs::Bme280<I2cdev, Delay>,
@@ -27,11 +29,11 @@ impl Bme {
         Err(())
     }
 
-    pub fn read_weather(&mut self) -> Result<MySample, Box<dyn std::error::Error>> {
+    pub fn read_weather(&mut self) -> Result<WeatherData, Box<dyn std::error::Error>> {
         #[cfg(target_os = "linux")]
         {
             let data = self.bme280.read_sample()?;
-            Ok(MySample {
+            Ok(WeatherData {
                 temperature: data.temperature,
                 humidity: data.humidity,
                 pressure: data.pressure,
@@ -40,20 +42,13 @@ impl Bme {
 
         #[cfg(not(target_os = "linux"))]
         {
-            Ok(MySample {
+            Ok(WeatherData {
                 temperature: 25.5,
                 humidity: 50.0,
                 pressure: 1013.25,
             })
         }
     }
-}
-
-#[derive(Resource, Default, Debug)]
-pub struct WeatherData {
-    pub temperature: f32,
-    pub humidity: f32,
-    pub pressure: f32,
 }
 
 // BmeをBevyのリソースとしてラップする
@@ -93,7 +88,7 @@ fn setup(mut commands: Commands) {
 fn read(
     time: Res<Time>,
     mut timer: ResMut<BmeTimer>,
-    bme_opt: Option<ResMut<BmeContainer>>, // 登録されていない可能性を考慮
+    bme_opt: Option<ResMut<BmeContainer>>,
     mut weather_data: ResMut<WeatherData>,
 ) {
     if timer.0.tick(time.delta()).just_finished() {
@@ -104,10 +99,8 @@ fn read(
                 weather_data.pressure = sample.pressure;
             }
         } else {
-            // 必要に応じて、リソースがない場合のフォールバック処理
             weather_data.temperature = 0.0;
         }
         println!("5s");
     }
-    // リソースが存在する場合のみ実行
 }
