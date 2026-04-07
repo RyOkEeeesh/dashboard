@@ -5,9 +5,9 @@ use linux_embedded_hal::{Delay, I2cdev};
 
 #[derive(Resource, Default, Debug)]
 pub struct WeatherData {
-    pub temperature: f32,
-    pub humidity: f32,
-    pub pressure: f32,
+    pub temperature: Option<f32>,
+    pub humidity: Option<f32>,
+    pub pressure: Option<f32>,
 }
 
 pub struct Bme {
@@ -16,7 +16,7 @@ pub struct Bme {
 }
 
 impl Bme {
-    pub fn new() -> Result<Self, ()> {
+    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
         #[cfg(target_os = "linux")]
         {
             let i2c = I2cdev::new("/dev/i2c-1")?;
@@ -26,7 +26,7 @@ impl Bme {
         }
 
         #[cfg(not(target_os = "linux"))]
-        Err(())
+        Err("Unsupported platform".into())
     }
 
     pub fn read_weather(&mut self) -> Result<WeatherData, Box<dyn std::error::Error>> {
@@ -43,15 +43,14 @@ impl Bme {
         #[cfg(not(target_os = "linux"))]
         {
             Ok(WeatherData {
-                temperature: 25.5,
-                humidity: 50.0,
-                pressure: 1013.25,
+                temperature: None,
+                humidity: None,
+                pressure: None,
             })
         }
     }
 }
 
-// BmeをBevyのリソースとしてラップする
 #[derive(Resource)]
 struct BmeContainer {
     device: Bme,
@@ -98,8 +97,6 @@ fn read(
                 weather_data.humidity = sample.humidity;
                 weather_data.pressure = sample.pressure;
             }
-        } else {
-            weather_data.temperature = 0.0;
         }
         println!("5s");
     }

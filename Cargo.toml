@@ -5,7 +5,13 @@ edition = "2024"
 
 [dependencies]
 bevy = "0.18.1"
-sea-orm = { version = "1.1.0", features = [ "sqlx-sqlite", "runtime-tokio-rustls", "macros" ] }
+sea-orm = { version = "1.1", features = [ 
+    "sqlx-sqlite", 
+    "runtime-tokio-native-tls", 
+    "macros",
+    "with-chrono"
+] }
+chrono = "0.4"
 tokio = { version = "1.0", features = ["full"] }
 anyhow = "1.0"
 bme280-rs = "0.3"
