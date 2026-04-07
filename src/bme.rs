@@ -10,7 +10,7 @@ pub struct WeatherData {
     pub pressure: Option<f32>,
 }
 
-pub struct Bme {
+struct Bme {
     #[cfg(target_os = "linux")]
     bme280: bme280_rs::Bme280<I2cdev, Delay>,
 }
@@ -62,7 +62,7 @@ struct BmeTimer(Timer);
 pub struct BmePlugin;
 
 impl Plugin for BmePlugin {
-    fn build(&self, app: &mut bevy::app::App) {
+    fn build(&self, app: &mut App) {
         app.init_resource::<WeatherData>();
         app.insert_resource(BmeTimer(Timer::from_seconds(5.0, TimerMode::Repeating)));
         app.add_systems(Startup, setup);

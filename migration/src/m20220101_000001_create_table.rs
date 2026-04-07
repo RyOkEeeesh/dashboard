@@ -12,10 +12,14 @@ impl MigrationTrait for Migration {
                     .table(RoomTemp::Table)
                     .if_not_exists()
                     .col(pk_auto(RoomTemp::Id))
-                    .col(float(RoomTemp::Temp))
-                    .col(float(RoomTemp::Humidity))
-                    .col(float(RoomTemp::Pressure))
-                    .col(date_time(RoomTemp::UpdatedAt))
+                    .col(float(RoomTemp::Temp).null())
+                    .col(float(RoomTemp::Humidity).null())
+                    .col(float(RoomTemp::Pressure).null())
+                    .col(
+                        date_time(RoomTemp::UpdatedAt)
+                            .not_null()
+                            .extra("DEFAULT (datetime('now', 'localtime'))".to_string()),
+                    )
                     .to_owned(),
             )
             .await

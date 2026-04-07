@@ -2575,10 +2575,10 @@ dependencies = [
 name = "dashboard"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "bevy",
  "bme280-rs",
  "chrono",
+ "dotenvy",
  "linux-embedded-hal",
  "sea-orm",
  "tokio",
