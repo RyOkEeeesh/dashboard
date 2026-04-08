@@ -1,9 +1,10 @@
+use crate::db::{DbSender, DbRequest};
 use bevy::prelude::*;
 
 #[cfg(target_os = "linux")]
 use linux_embedded_hal::{Delay, I2cdev};
 
-#[derive(Resource, Default, Debug)]
+#[derive(Resource, Default, Clone, Debug)]
 pub struct WeatherData {
     pub temperature: Option<f32>,
     pub humidity: Option<f32>,
@@ -89,13 +90,13 @@ fn read(
     mut timer: ResMut<BmeTimer>,
     bme_opt: Option<ResMut<BmeContainer>>,
     mut weather_data: ResMut<WeatherData>,
+    db_sender: Res<DbSender>,
 ) {
     if timer.0.tick(time.delta()).just_finished() {
         if let Some(mut bme_container) = bme_opt {
             if let Ok(sample) = bme_container.device.read_weather() {
-                weather_data.temperature = sample.temperature;
-                weather_data.humidity = sample.humidity;
-                weather_data.pressure = sample.pressure;
+                *weather_data = sample.clone();
+                let _ = db_sender.0.try_send(DbRequest::SaveWeather(sample));
             }
         }
         println!("5s");

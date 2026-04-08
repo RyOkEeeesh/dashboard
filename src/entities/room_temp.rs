@@ -7,12 +7,12 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    #[sea_orm(column_type = "Float")]
-    pub temp: f32,
-    #[sea_orm(column_type = "Float")]
-    pub humidity: f32,
-    #[sea_orm(column_type = "Float")]
-    pub pressure: f32,
+    #[sea_orm(column_type = "Float", nullable)]
+    pub temp: Option<f32>,
+    #[sea_orm(column_type = "Float", nullable)]
+    pub humidity: Option<f32>,
+    #[sea_orm(column_type = "Float", nullable)]
+    pub pressure: Option<f32>,
     pub updated_at: DateTime,
 }
 

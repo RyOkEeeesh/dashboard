@@ -1,15 +1,16 @@
 use bevy::prelude::*;
 use dashboard::bme::BmePlugin;
-use dashboard::db::{dbconn, DBContainer};
-
+use dashboard::db::{DbManager, DbSender};
 
 #[tokio::main]
 async fn main() {
-    let db = dbconn().await.expect("DB接続失敗");
+    let (db_manager, rx) = DbManager::new();
+
+    DbManager::run_task(rx);
 
     App::new()
-        .insert_resource(DBContainer { db })
         .add_plugins(DefaultPlugins)
+        .insert_resource(DbSender(db_manager.tx))
         .add_plugins(BmePlugin)
         .run();
 }
