@@ -1,4 +1,4 @@
-use crate::db::{DbSender, DbRequest};
+use crate::db::{DbRequest, DbSender};
 use bevy::prelude::*;
 
 #[cfg(target_os = "linux")]
@@ -99,6 +99,11 @@ fn read(
                 let _ = db_sender.0.try_send(DbRequest::SaveWeather(sample));
             }
         }
+        let _ = db_sender.0.try_send(DbRequest::SaveWeather(WeatherData {
+            temperature: Some(15.0),
+            humidity: Some(50.0),
+            pressure: Some(1013.25),
+        }));
         println!("5s");
     }
 }
