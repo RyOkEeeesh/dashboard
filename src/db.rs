@@ -11,6 +11,7 @@ pub struct DbSender(pub mpsc::Sender<DbRequest>);
 
 pub enum DbRequest {
     SaveWeather(WeatherData),
+    GetHistory(oneshot::Sender<Vec<room_temp::Model>>),
 }
 
 pub fn db_run(rx: mpsc::Receiver<DbRequest>) {
@@ -30,6 +31,11 @@ pub fn db_run(rx: mpsc::Receiver<DbRequest>) {
                     };
                     let _ = room_temp::Entity::insert(result).exec(&db).await;
                 }
+                DbRequest::GetHistory(respond_to) => {
+                    if let Ok(history) = room_temp::Entity::find().all(&db).await {
+                        let _ = respond_to.send(history);
+                    }
+                }
             }
         }
     });
@@ -38,7 +44,7 @@ pub fn db_run(rx: mpsc::Receiver<DbRequest>) {
 async fn dbconn() -> Result<DatabaseConnection, DbErr> {
     dotenv().ok();
     let db_path = "local.db";
-    let db_url = format!("sqlite:{}", db_path);
+    let db_url = format!("sqlite:{db_path}");
 
     match Database::connect(&db_url).await {
         Ok(db) => Ok(db),

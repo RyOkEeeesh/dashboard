@@ -1,4 +1,4 @@
-use crate::db::{DbRequest, DbSender};
+use crate::{clock::SecondTick, db::{DbRequest, DbSender}};
 use bevy::prelude::*;
 
 #[cfg(target_os = "linux")]
@@ -55,17 +55,13 @@ impl Bme {
 #[derive(Resource)]
 struct BmeContainer(Bme);
 
-#[derive(Resource)]
-struct BmeTimer(Timer);
-
 pub struct BmePlugin;
 
 impl Plugin for BmePlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<WeatherData>();
-        app.insert_resource(BmeTimer(Timer::from_seconds(5.0, TimerMode::Repeating)));
-        app.add_systems(Startup, setup);
-        app.add_systems(Update, read);
+        app.init_resource::<WeatherData>()
+            .add_systems(Startup, setup)
+            .add_observer(read);
     }
 }
 
@@ -82,14 +78,12 @@ fn setup(mut commands: Commands) {
 }
 
 fn read(
-    time: Res<Time>,
-    mut timer: ResMut<BmeTimer>,
-    bme_opt: Option<ResMut<BmeContainer>>,
+    bme: Option<ResMut<BmeContainer>>,
     mut weather_data: ResMut<WeatherData>,
     db_sender: Res<DbSender>,
 ) {
     if timer.0.tick(time.delta()).just_finished() {
-        if let Some(mut bme_container) = bme_opt {
+        if let Some(mut bme_container) = bme {
             if let Ok(sample) = bme_container.0.read_weather() {
                 *weather_data = sample.clone();
                 let _ = db_sender.0.try_send(DbRequest::SaveWeather(sample));
