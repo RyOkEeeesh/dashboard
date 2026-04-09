@@ -53,9 +53,7 @@ impl Bme {
 }
 
 #[derive(Resource)]
-struct BmeContainer {
-    device: Bme,
-}
+struct BmeContainer(Bme);
 
 #[derive(Resource)]
 struct BmeTimer(Timer);
@@ -75,12 +73,10 @@ fn setup(mut commands: Commands) {
     match Bme::new() {
         Ok(bme) => {
             info!("BME280 sensor initialized successfully.");
-            // 成功したらリソースとして登録
-            commands.insert_resource(BmeContainer { device: bme });
+            commands.insert_resource(BmeContainer(bme));
         }
         Err(_) => {
             error!("Failed to initialize BME280. Running in mock mode.");
-            // 失敗しても、BmeContainerがないだけでアプリは止まらない
         }
     }
 }
@@ -94,16 +90,11 @@ fn read(
 ) {
     if timer.0.tick(time.delta()).just_finished() {
         if let Some(mut bme_container) = bme_opt {
-            if let Ok(sample) = bme_container.device.read_weather() {
+            if let Ok(sample) = bme_container.0.read_weather() {
                 *weather_data = sample.clone();
                 let _ = db_sender.0.try_send(DbRequest::SaveWeather(sample));
             }
         }
-        let _ = db_sender.0.try_send(DbRequest::SaveWeather(WeatherData {
-            temperature: Some(15.0),
-            humidity: Some(50.0),
-            pressure: None,
-        }));
         println!("5s");
     }
 }
