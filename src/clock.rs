@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use chrono::Timelike;
 
-#[derive(EntityEvent)]
+#[derive(Event)]
 pub struct SecondTick(pub u32);
 
 pub struct ClockSysPlugin;

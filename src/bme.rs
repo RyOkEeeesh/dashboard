@@ -61,7 +61,7 @@ impl Plugin for BmePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<WeatherData>()
             .add_systems(Startup, setup)
-            .add_observer(read);
+            .add_observer(on_read);
     }
 }
 
@@ -77,18 +77,25 @@ fn setup(mut commands: Commands) {
     }
 }
 
-fn read(
+fn on_read(
+    trigger: On<SecondTick>,
     bme: Option<ResMut<BmeContainer>>,
     mut weather_data: ResMut<WeatherData>,
     db_sender: Res<DbSender>,
 ) {
-    if timer.0.tick(time.delta()).just_finished() {
+    if trigger.event().0 % 5 == 0 {
         if let Some(mut bme_container) = bme {
             if let Ok(sample) = bme_container.0.read_weather() {
                 *weather_data = sample.clone();
                 let _ = db_sender.0.try_send(DbRequest::SaveWeather(sample));
             }
         }
-        println!("5s");
+        let _ = db_sender.0.try_send(DbRequest::SaveWeather(WeatherData {
+            temperature: Some(15.0),
+            humidity: Some(50.0),
+            pressure: Some(1013.25),
+        }));
+        let now = chrono::Local::now();
+        println!("{now}");
     }
 }
