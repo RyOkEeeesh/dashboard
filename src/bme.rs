@@ -102,7 +102,7 @@ fn read(
         let _ = db_sender.0.try_send(DbRequest::SaveWeather(WeatherData {
             temperature: Some(15.0),
             humidity: Some(50.0),
-            pressure: Some(1013.25),
+            pressure: None,
         }));
         println!("5s");
     }

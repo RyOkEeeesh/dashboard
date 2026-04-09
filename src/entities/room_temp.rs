@@ -13,7 +13,8 @@ pub struct Model {
     pub humidity: Option<f32>,
     #[sea_orm(column_type = "Float", nullable)]
     pub pressure: Option<f32>,
-    pub updated_at: DateTime,
+    #[sea_orm(column_type = "custom(\"DATETIME\")")]
+    pub updated_at: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

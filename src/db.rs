@@ -1,11 +1,10 @@
-use bevy::prelude::{Resource};
+use bevy::prelude::Resource;
 use dotenvy::dotenv;
-use sea_orm::{Database, DatabaseConnection, DbErr, NotSet, Set, EntityTrait};
-use std::env;
+use sea_orm::{Database, DatabaseConnection, DbErr, EntityTrait, NotSet, Set};
 use tokio::sync::{mpsc, oneshot};
 
 use crate::bme::WeatherData;
-use crate::entities::{room_temp};
+use crate::entities::room_temp;
 
 #[derive(Resource)]
 pub struct DbSender(pub mpsc::Sender<DbRequest>);
@@ -51,7 +50,31 @@ impl DbManager {
 
     async fn dbconn() -> Result<DatabaseConnection, DbErr> {
         dotenv().ok();
-        let db_url = env::var("DATABASE_URL").unwrap_or("sqlite:local.db?mode=rwc".to_string());
-        Database::connect(&db_url).await
+        let db_path = "local.db";
+        let db_url = format!("sqlite:{}", db_path);
+
+        match Database::connect(&db_url).await {
+            Ok(db) => Ok(db),
+            Err(_) => {
+                let _ = std::fs::File::create(db_path);
+
+                let db = Database::connect(&db_url).await?;
+
+                let sql = r#"
+                CREATE TABLE room_temp (
+                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    temp FLOAT,
+                    humidity FLOAT,
+                    pressure FLOAT,
+                    updated_at DATETIME NOT NULL DEFAULT (datetime('now', 'localtime'))
+                );
+                "#;
+
+                use sea_orm::{ConnectionTrait, Statement};
+                db.execute(Statement::from_string(db.get_database_backend(), sql)).await?;
+
+                Ok(db)
+            }
+        }
     }
 }
