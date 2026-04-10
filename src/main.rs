@@ -6,8 +6,7 @@ use dashboard::db::{DbPlugin};
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, ClockSysPlugin))
-        .add_plugins(TokioTasksPlugin::default())
+        .add_plugins((DefaultPlugins, ClockSysPlugin, TokioTasksPlugin::default()))
         .add_plugins((DbPlugin, BmePlugin))
         .run();
 }

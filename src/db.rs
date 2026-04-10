@@ -23,7 +23,6 @@ impl Plugin for DbPlugin {
             .add_systems(Startup, setup); // 普通のシステムとして登録
     }
 }
-
 pub enum DbRequest {
     SaveWeather(WeatherData),
     GetHistory(oneshot::Sender<Vec<room_temp::Model>>),
