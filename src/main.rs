@@ -1,12 +1,6 @@
-use bevy::prelude::*;
-use bevy_tokio_tasks::TokioTasksPlugin;
-use dashboard::bme::BmePlugin;
-use dashboard::clock::ClockSysPlugin;
-use dashboard::db::{DbPlugin};
+slint::include_modules!();
 
-fn main() {
-    App::new()
-        .add_plugins((DefaultPlugins, ClockSysPlugin, TokioTasksPlugin::default()))
-        .add_plugins((DbPlugin, BmePlugin))
-        .run();
+#[tokio::main]
+async fn main() {
+    
 }

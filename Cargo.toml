@@ -4,8 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-bevy = "0.18.1"
-bevy-tokio-tasks = "0.18"
 sea-orm = { version = "1.1", features = [ 
     "sqlx-sqlite", 
     "runtime-tokio-native-tls", 
@@ -16,6 +14,14 @@ chrono = "0.4"
 tokio = { version = "1.0", features = ["full"] }
 bme280-rs = "0.3"
 dotenvy = "0.15.7"
+slint = "1.15.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 linux-embedded-hal = "0.4"
+
+[build-dependencies]
+slint-build = "1.15.1"
+
+[profile.release]
+codegen-units = 1
+lto = true
