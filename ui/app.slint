@@ -1,15 +1,51 @@
-// struct RoomTemp {
-//   temp: float,
-//   humidity: float,
-//   pressure: float,
-// }
+import { ScrollView } from "std-widgets.slint";
+import "./fonts/NotoSansJP-Regular.ttf";
+
+enum TileOpenStatus {
+    Normal,
+    Main,
+    Sub,
+}
+
+global AppState {
+    in-out property <TileOpenStatus> open_status: TileOpenStatus.Normal;
+}
+
+struct TileData {
+    can_use: bool,
+    is_open: bool,
+}
 
 component Tile inherits Rectangle {
-  property <bool> is-open;
+    in property <TileData> current_data;
 }
 
-component RoomTemp inherits Tile {
-    
+component RoomTemp inherits Tile { }
+
+struct DatetimeState {
+    Y: int,
+    M: int,
+    D: int,
+    h: int,
+    m: int,
+    s: int,
 }
 
-export component App inherits Window { }
+component TimeTile inherits Rectangle {
+    in property <TileData> current_data;
+    in property <DatetimeState> datetime;
+
+    Text {
+        text: "\{root.datetime.Y}/\{root.datetime.M}/\{root.datetime.D} \{root.datetime.h}:\{root.datetime.m}:\{root.datetime.s}";
+    }
+}
+
+export component App inherits Window {
+    default-font-family: "Noto Sans JP";
+
+    in property <DatetimeState> datetime;
+
+    TimeTile {
+        datetime: datetime;
+    }
+}
