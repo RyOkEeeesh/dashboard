@@ -13,23 +13,38 @@ async fn main() {
     sched
         .add(
             Job::new("*/1 * * * * *", move |_id, _lock| {
-                let now = Local::now();
-                let state = DatetimeState {
-                    Y: now.year() as i32,
-                    M: now.month() as i32,
-                    D: now.day() as i32,
-                    h: now.hour() as i32,
-                    m: now.minute() as i32,
-                    s: now.second() as i32,
-                };
+                let ui_weak = ui_weak.clone(); // クロージャ内で使うため
 
-                // ui_weak から直接呼び出す
-                // これ自体が「もし生きていればメインスレッドで実行する」という処理になります
-                ui_weak
-                    .upgrade_in_event_loop(move |ui| {
-                        ui.set_datetime(state);
-                    })
-                    .expect("Failed to update UI");
+                tokio::spawn(async move {
+                    let now = Local::now();
+
+                    // 1. 次の「0秒」までの時間を計算する
+                    // 1秒(1,000,000,000ナノ秒) - 現在のナノ秒
+                    let nanos = now.nanosecond();
+                    let sleep_ms = (1_000_000_000 - nanos) / 1_000_000;
+
+                    // 2. その差分だけ待つ（これでOSの時計と同期する）
+                    if sleep_ms > 0 {
+                        tokio::time::sleep(std::time::Duration::from_millis(sleep_ms as u64)).await;
+                    }
+
+                    // 3. ちょうど「秒」が変わったタイミングで時刻を取得してUI更新
+                    let sync_now = Local::now();
+                    let state = DatetimeState {
+                        Y: sync_now.year() as i32,
+                        M: sync_now.month() as i32,
+                        D: sync_now.day() as i32,
+                        h: sync_now.hour() as i32,
+                        m: sync_now.minute() as i32,
+                        s: sync_now.second() as i32,
+                    };
+
+                    ui_weak
+                        .upgrade_in_event_loop(move |ui| {
+                            ui.set_datetime(state);
+                        })
+                        .ok();
+                });
             })
             .unwrap(),
         )
