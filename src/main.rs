@@ -1,4 +1,5 @@
 slint::include_modules!();
+
 use chrono::{Datelike, Local, Timelike};
 use std::sync::Arc;
 use tokio::sync::{Mutex, mpsc};
@@ -78,7 +79,9 @@ async fn main() {
                         if let Ok(result) = bme.read_weather() {
                             let ui_result = result.clone();
                             ui_weak
-                                .upgrade_in_event_loop(move |ui| ui.set_bme_result(to_ui_weather_data(ui_result)))
+                                .upgrade_in_event_loop(move |ui| {
+                                    ui.set_bme_result(to_ui_weather_data(ui_result))
+                                })
                                 .ok();
                             let _ = tx.try_send(DbRequest::SaveWeather(result));
                         }
@@ -107,8 +110,20 @@ fn to_ui_datetime(time: chrono::DateTime<Local>) -> DatetimeState {
 
 fn to_ui_weather_data(wd: WeatherData) -> WeatherDataUi {
     WeatherDataUi {
-        temp: wd.temp.map(|t| format!("{:.1}", t)).unwrap_or_else(|| "--".to_string()).into(),
-        humidity: wd.humidity.map(|t| format!("{:.1}", t)).unwrap_or_else(|| "--".to_string()).into(),
-        pressure: wd.pressure.map(|t| format!("{:.1}", t)).unwrap_or_else(|| "--".to_string()).into()
+        temp: wd
+            .temp
+            .map(|t| format!("{:.1}", t))
+            .unwrap_or_else(|| "--".to_string())
+            .into(),
+        humidity: wd
+            .humidity
+            .map(|t| format!("{:.1}", t))
+            .unwrap_or_else(|| "--".to_string())
+            .into(),
+        pressure: wd
+            .pressure
+            .map(|t| format!("{:.1}", t))
+            .unwrap_or_else(|| "--".to_string())
+            .into(),
     }
 }

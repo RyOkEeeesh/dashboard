@@ -1,5 +1,3 @@
-use std::clone;
-
 #[cfg(target_os = "linux")]
 use bme280_rs::Bme280;
 #[cfg(target_os = "linux")]

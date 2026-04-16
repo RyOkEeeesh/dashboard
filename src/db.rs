@@ -15,6 +15,9 @@ pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
         while let Some(request) = rx.recv().await {
             match request {
                 DbRequest::SaveWeather(data) => {
+                    if matches!(data, WeatherData { temp: None, humidity: None, pressure: None }) {
+                        return;
+                    }
                     let active_model = room_temp::ActiveModel {
                         id: NotSet,
                         temp: Set(data.temp),
