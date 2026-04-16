@@ -1,9 +1,13 @@
+use std::clone;
+
+#[cfg(target_os = "linux")]
 use bme280_rs::Bme280;
 #[cfg(target_os = "linux")]
 use linux_embedded_hal::{Delay, I2cdev};
 
+#[derive(Clone)]
 pub struct WeatherData {
-    pub temperature: Option<f32>,
+    pub temp: Option<f32>,
     pub humidity: Option<f32>,
     pub pressure: Option<f32>,
 }
@@ -14,7 +18,7 @@ pub struct Bme {
 }
 
 impl Bme {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new() -> Result<Self, ()> {
         #[cfg(target_os = "linux")]
         {
             let i2c = I2cdev::new("/dev/i2c-1")?;
@@ -24,7 +28,7 @@ impl Bme {
         }
 
         #[cfg(not(target_os = "linux"))]
-        Err("Unsupported platform".into())
+        Err(())
     }
 
     pub fn read_weather(&mut self) -> Result<WeatherData, Box<dyn std::error::Error>> {
@@ -32,7 +36,7 @@ impl Bme {
         {
             let data = self.bme280.read_sample()?;
             Ok(WeatherData {
-                temperature: data.temperature,
+                temp: data.temp,
                 humidity: data.humidity,
                 pressure: data.pressure,
             })
@@ -41,7 +45,7 @@ impl Bme {
         #[cfg(not(target_os = "linux"))]
         {
             Ok(WeatherData {
-                temperature: None,
+                temp: None,
                 humidity: None,
                 pressure: None,
             })

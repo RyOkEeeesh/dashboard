@@ -17,10 +17,27 @@ struct TileData {
 }
 
 component Tile inherits Rectangle {
-    in property <TileData> current_data;
+    in property <TileData> current_data: { can_use: false, is_open: false };
 }
 
-component RoomTemp inherits Tile { }
+struct WeatherDataUi {
+    temp: string,
+    humidity: string,
+    pressure: string,
+}
+
+component RoomTempTile inherits Tile {
+    in property <WeatherDataUi> weather_data;
+
+    if !(root.current_data.can-use) : Text {
+        text: "現在ご利用できません";
+    }
+
+    if (root.current_data.can-use) : Text {
+        text: "\{root.weather_data.temp}℃";
+    }
+
+}
 
 struct DatetimeState {
     Y: string,
@@ -31,12 +48,13 @@ struct DatetimeState {
     s: string,
 }
 
-component TimeTile inherits Rectangle {
+component DatetimeTile inherits Rectangle {
     in property <TileData> current_data;
     in property <DatetimeState> datetime;
 
     Text {
         text: "\{root.datetime.Y}/\{root.datetime.M}/\{root.datetime.D} \{root.datetime.h}:\{root.datetime.m}:\{root.datetime.s}";
+        font-size: 40px;
     }
 }
 
@@ -44,8 +62,15 @@ export component App inherits Window {
     default-font-family: "Noto Sans JP";
 
     in property <DatetimeState> datetime;
+    in property <bool> can_bme_use;
+    in property <WeatherDataUi> bme_result;
 
-    TimeTile {
+    DatetimeTile {
         datetime: datetime;
+    }
+
+    RoomTempTile {
+        current_data: { can_use: can_bme_use };
+        weather_data: bme_result;
     }
 }

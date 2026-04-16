@@ -17,7 +17,7 @@ pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
                 DbRequest::SaveWeather(data) => {
                     let active_model = room_temp::ActiveModel {
                         id: NotSet,
-                        temp: Set(data.temperature),
+                        temp: Set(data.temp),
                         humidity: Set(data.humidity),
                         pressure: Set(data.pressure),
                         updated_at: NotSet,
