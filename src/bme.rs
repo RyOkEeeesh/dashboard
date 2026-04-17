@@ -19,10 +19,9 @@ impl Bme {
     pub fn new() -> Result<Self, ()> {
         #[cfg(target_os = "linux")]
         {
-            let i2c = I2cdev::new("/dev/i2c-1")?;
+            let i2c = I2cdev::new("/dev/i2c-1").unwrap();
             let mut bme280 = Bme280::new(i2c, Delay);
-            bme280.init()?;
-            Ok(Self { bme280 })
+            if bme280.init().is_ok() { Ok(Self { bme280 }) } else { Err(()) }
         }
 
         #[cfg(not(target_os = "linux"))]
@@ -34,7 +33,7 @@ impl Bme {
         {
             let data = self.bme280.read_sample()?;
             Ok(WeatherData {
-                temp: data.temp,
+                temp: data.temperature,
                 humidity: data.humidity,
                 pressure: data.pressure,
             })
