@@ -38,7 +38,7 @@ pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
 }
 
 async fn dbconn() -> Result<DatabaseConnection, DbErr> {
-    let db_path = "local.db";
+    let db_path = "/var/lib/dashboard/local.db";
     let db_url = format!("sqlite:{db_path}");
 
     match Database::connect(&db_url).await {

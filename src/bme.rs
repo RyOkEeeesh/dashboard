@@ -1,5 +1,5 @@
 #[cfg(target_os = "linux")]
-use bme280_rs::Bme280;
+use bme280_rs::{Bme280, Configuration, Oversampling, SensorMode};
 #[cfg(target_os = "linux")]
 use linux_embedded_hal::{Delay, I2cdev};
 
@@ -19,9 +19,20 @@ impl Bme {
     pub fn new() -> Result<Self, ()> {
         #[cfg(target_os = "linux")]
         {
-            let i2c = I2cdev::new("/dev/i2c-1").unwrap();
+            let i2c = I2cdev::new("/dev/i2c-1").map_err(|_| ())?;
             let mut bme280 = Bme280::new(i2c, Delay);
-            if bme280.init().is_ok() { Ok(Self { bme280 }) } else { Err(()) }
+
+            bme280.init().map_err(|_| ())?;
+
+            let config = Configuration::default()
+                .with_temperature_oversampling(Oversampling::Oversample1)
+                .with_humidity_oversampling(Oversampling::Oversample1)
+                .with_pressure_oversampling(Oversampling::Oversample1)
+                .with_sensor_mode(SensorMode::Normal);
+
+            bme280.set_sampling_configuration(config).map_err(|_| ())?;
+
+            Ok(Self { bme280 })
         }
 
         #[cfg(not(target_os = "linux"))]
