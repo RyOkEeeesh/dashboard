@@ -54,12 +54,15 @@ component DatetimeTile inherits Rectangle {
 
     Text {
         text: "\{root.datetime.Y}/\{root.datetime.M}/\{root.datetime.D} \{root.datetime.h}:\{root.datetime.m}:\{root.datetime.s}";
-        font-size: 40px;
+        font-size: 2rem;
     }
 }
 
 export component App inherits Window {
     default-font-family: "Noto Sans JP";
+    default-font-size: 32px;
+    width: 1920px;
+    height: 720px;
 
     in property <DatetimeState> datetime;
     in property <bool> can_bme_use;
