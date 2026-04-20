@@ -1,4 +1,5 @@
 import "./fonts/NotoSansJP-Regular.ttf";
+import "./fonts/NotoSansJP-Bold.ttf";
 
 enum TileOpenStatus {
     Normal,
@@ -13,7 +14,11 @@ enum Theme {
 
 export global AppTheme {
     out property <Theme> theme: Theme.Dark;
-    out property <int> grid_spacing: 16;
+    out property <int> display_width: 1920;
+    out property <int> display_height: 720;
+    out property <int> font_size: 24;
+    out property <int> grid_spacing: root.font_size * 1.5;
+    out property <int> app_size: root.display_height / 2 - root.grid_spacing;
 }
 
 export global AppState {
@@ -27,11 +32,11 @@ struct TileData {
 
 component Tile inherits Rectangle {
     in property <TileData> current_data: { can_use: false, is_open: false };
-    in property <length> app_size;
 
-    width: root.app_size;
-    height: root.app_size;
+    width: AppTheme.app_size * 1phx;
+    height: AppTheme.app_size * 1phx;
     background: #0c4a6e;
+    border-radius: 1rem;
 }
 
 struct WeatherDataUi {
@@ -43,9 +48,9 @@ struct WeatherDataUi {
 component RoomTempTile inherits Tile {
     in property <WeatherDataUi> weather_data;
 
-
     if !(root.current_data.can-use) : Text {
         text: "現在ご利用できません";
+        font-size: 1.2rem;
     }
 
     if (root.current_data.can-use) : Text {
@@ -69,19 +74,19 @@ component DatetimeTile inherits Rectangle {
 
     width: 50%;
     height: 100%;
-    
 
     Text {
         text: "\{root.datetime.Y}/\{root.datetime.M}/\{root.datetime.D} \{root.datetime.h}:\{root.datetime.m}:\{root.datetime.s}";
         font-size: 2rem;
+        font-weight: 700;
     }
 }
 
 export component App inherits Window {
     default-font-family: "Noto Sans JP";
-    default-font-size: 32phx;
-    width: 1920phx;
-    height: 720phx;
+    default-font-size: AppTheme.font_size * 1phx;
+    width: AppTheme.display_width * 1phx;
+    height: AppTheme.display_height * 1phx;
 
     in property <DatetimeState> datetime;
     in property <bool> can_bme_use;
@@ -101,8 +106,11 @@ export component App inherits Window {
             RoomTempTile {
                 current_data: { can_use: can_bme_use };
                 weather_data: bme_result;
-                app_size: grid.height / 2 - AppTheme.grid_spacing * 1phx;
-            }
+            } 
+
+            Tile {}
+            Tile {}
+            Tile {}
         }
     }
 }
