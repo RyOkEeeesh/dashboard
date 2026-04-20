@@ -1,4 +1,3 @@
-import { ScrollView } from "std-widgets.slint";
 import "./fonts/NotoSansJP-Regular.ttf";
 
 enum TileOpenStatus {
@@ -7,8 +6,18 @@ enum TileOpenStatus {
     Sub,
 }
 
-global AppState {
-    in-out property <TileOpenStatus> open_status: TileOpenStatus.Normal;
+enum Theme {
+    Light,
+    Dark,
+}
+
+export global AppTheme {
+    out property <Theme> theme: Theme.Dark;
+    out property <int> grid_spacing: 16;
+}
+
+export global AppState {
+    in-out property <int> name; property <TileOpenStatus> open_status: TileOpenStatus.Normal;
 }
 
 struct TileData {
@@ -18,6 +27,11 @@ struct TileData {
 
 component Tile inherits Rectangle {
     in property <TileData> current_data: { can_use: false, is_open: false };
+    in property <length> app_size;
+
+    width: root.app_size;
+    height: root.app_size;
+    background: #0c4a6e;
 }
 
 struct WeatherDataUi {
@@ -28,6 +42,7 @@ struct WeatherDataUi {
 
 component RoomTempTile inherits Tile {
     in property <WeatherDataUi> weather_data;
+
 
     if !(root.current_data.can-use) : Text {
         text: "現在ご利用できません";
@@ -52,6 +67,10 @@ component DatetimeTile inherits Rectangle {
     in property <TileData> current_data;
     in property <DatetimeState> datetime;
 
+    width: 50%;
+    height: 100%;
+    
+
     Text {
         text: "\{root.datetime.Y}/\{root.datetime.M}/\{root.datetime.D} \{root.datetime.h}:\{root.datetime.m}:\{root.datetime.s}";
         font-size: 2rem;
@@ -60,20 +79,30 @@ component DatetimeTile inherits Rectangle {
 
 export component App inherits Window {
     default-font-family: "Noto Sans JP";
-    default-font-size: 32px;
-    width: 1920px;
-    height: 720px;
+    default-font-size: 32phx;
+    width: 1920phx;
+    height: 720phx;
 
     in property <DatetimeState> datetime;
     in property <bool> can_bme_use;
     in property <WeatherDataUi> bme_result;
 
-    DatetimeTile {
-        datetime: datetime;
-    }
+    HorizontalLayout {
+        DatetimeTile {
+            datetime: datetime;
+        }
 
-    RoomTempTile {
-        current_data: { can_use: can_bme_use };
-        weather_data: bme_result;
+        grid := GridLayout {
+            height: 100%;
+            width: 50%;
+            spacing: AppTheme.grid_spacing * 1phx;
+            padding: AppTheme.grid_spacing * 1phx;
+
+            RoomTempTile {
+                current_data: { can_use: can_bme_use };
+                weather_data: bme_result;
+                app_size: grid.height / 2 - AppTheme.grid_spacing * 1phx;
+            }
+        }
     }
 }
