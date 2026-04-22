@@ -1,5 +1,6 @@
 import "./fonts/NotoSansJP-Regular.ttf";
 import "./fonts/NotoSansJP-Bold.ttf";
+import { StandardButton } from "std-widgets.slint";
 
 enum TileOpenStatus {
     Normal,
@@ -12,6 +13,16 @@ enum Theme {
     Dark,
 }
 
+enum WifiStatus {
+    Add,
+    Bad,
+    Off,
+    Excellent,
+    Good,
+    Fair,
+    Poor
+}
+
 export global AppTheme {
     out property <Theme> theme: Theme.Dark;
     out property <int> display_width: 1920;
@@ -22,7 +33,8 @@ export global AppTheme {
 }
 
 export global AppState {
-    in-out property <int> name; property <TileOpenStatus> open_status: TileOpenStatus.Normal;
+    in-out property <int> name;
+    property <TileOpenStatus> open_status: TileOpenStatus.Normal;
 }
 
 struct TileData {
@@ -48,15 +60,14 @@ struct WeatherDataUi {
 component RoomTempTile inherits Tile {
     in property <WeatherDataUi> weather_data;
 
-    if !(root.current_data.can-use) : Text {
+    if !(root.current_data.can-use): Text {
         text: "現在ご利用できません";
         font-size: 1.2rem;
     }
 
-    if (root.current_data.can-use) : Text {
+    if (root.current_data.can-use): Text {
         text: "\{root.weather_data.temp}℃";
     }
-
 }
 
 struct DatetimeState {
@@ -72,7 +83,7 @@ component DatetimeTile inherits Rectangle {
     in property <TileData> current_data;
     in property <DatetimeState> datetime;
 
-    width: 50%;
+    horizontal-stretch: 1;
     height: 100%;
 
     Text {
@@ -91,6 +102,7 @@ export component App inherits Window {
     in property <DatetimeState> datetime;
     in property <bool> can_bme_use;
     in property <WeatherDataUi> bme_result;
+    in property <WifiStatus> wifi_status;
 
     HorizontalLayout {
         DatetimeTile {
@@ -99,18 +111,57 @@ export component App inherits Window {
 
         grid := GridLayout {
             height: 100%;
-            width: 50%;
+            width: (AppTheme.app_size * 2 + AppTheme.grid_spacing * 3) * 1phx;
             spacing: AppTheme.grid_spacing * 1phx;
             padding: AppTheme.grid_spacing * 1phx;
 
             RoomTempTile {
                 current_data: { can_use: can_bme_use };
                 weather_data: bme_result;
-            } 
+            }
 
-            Tile {}
-            Tile {}
-            Tile {}
+            Tile { }
+
+            Tile { }
+
+            Tile { }
+        }
+
+        VerticalLayout {
+            alignment: end;
+            width: 2rem;
+            height: 100%;
+
+            setting := Image {
+                source: @image-url("./icons/setting.svg");
+            }
+
+            wifi_icon := Image {
+                source: @image-url("./icons/wifi-add.svg");
+                states [
+                    wifi-add when wifi_status == WifiStatus.Add: {
+                        source: @image-url("./icons/wifi-add.svg");
+                    }
+                    wifi-bad when wifi_status == WifiStatus.Bad: {
+                        source: @image-url("./icons/wifi-bad.svg");
+                    }
+                    wifi-off when wifi_status == WifiStatus.Off: {
+                        source: @image-url("./icons/wifi-off.svg");
+                    }
+                    wifi-excellent when wifi_status == WifiStatus.Excellent: {
+                        source: @image-url("./icons/wifi-excellent.svg");
+                    }
+                    wifi-good when wifi_status == WifiStatus.Good: {
+                        source: @image-url("./icons/wifi-good.svg");
+                    }
+                    wifi-fair when wifi_status == WifiStatus.Fair: {
+                        source: @image-url("./icons/wifi-fair.svg");
+                    }
+                    wifi-poor when wifi_status == WifiStatus.Poor: {
+                        source: @image-url("./icons/wifi-poor.svg");
+                    }
+                ]
+            }
         }
     }
 }

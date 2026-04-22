@@ -18,7 +18,6 @@ async fn main() {
     let ui_weak = ui.as_weak();
 
     let bme_result = Bme::new();
-
     if bme_result.is_ok() {
         ui.set_can_bme_use(true);
     }
@@ -29,13 +28,9 @@ async fn main() {
     ui.set_datetime(to_ui_datetime(Local::now()));
 
     // 秒数がちょうど切り替わるタイミングまで待つ
-    {
-        let now = Local::now();
-        let nanos = now.nanosecond();
-        let sleep_ms = (1_000_000_000 - nanos) / 1_000_000;
-        if sleep_ms > 0 {
-            tokio::time::sleep(std::time::Duration::from_millis(sleep_ms as u64)).await;
-        }
+    let sleep_ms = (1_000_000_000 - Local::now().nanosecond()) / 1_000_000;
+    if sleep_ms > 0 {
+        tokio::time::sleep(std::time::Duration::from_millis(sleep_ms as u64)).await;
     }
 
     let sched = JobScheduler::new().await.unwrap();
