@@ -8,11 +8,6 @@ enum TileOpenStatus {
     Sub,
 }
 
-enum Theme {
-    Light,
-    Dark,
-}
-
 enum WifiStatus {
     Add,
     Bad,
@@ -23,13 +18,69 @@ enum WifiStatus {
     Poor
 }
 
+enum Theme {
+    Light,
+    Dark,
+}
+
+enum ClrTheme {
+    Slate,
+    Gray, 
+    Zinc, 
+    Neutral,
+    Stone,
+    Taupe,
+    Mauve,
+    Mist,
+    Olive
+}
+
+export struct ClrProps {
+    main_bg: color,
+    sub_bg: color,
+    app_bg: color,
+    main_txt: color,
+    app_txt: color,
+}
+
 export global AppTheme {
-    out property <Theme> theme: Theme.Dark;
+    out property <Theme> theme: Theme.Light;
     out property <int> display_width: 1920;
     out property <int> display_height: 720;
     out property <int> font_size: 24;
-    out property <int> grid_spacing: root.font_size * 1.5;
-    out property <int> app_size: root.display_height / 2 - root.grid_spacing;
+    out property <int> grid_spacing: font_size * 1.5;
+    out property <int> app_size: (display_height - grid_spacing * 3) / 2;
+    out property <color> main_bg: theme == Theme.Light ? #d8d8d0 : #262626;
+    out property <color> app_bg: theme == Theme.Light ? #7c7c67 : #404040;
+    out property <color> side_bg: theme == Theme.Light ? #abab9c : #222121;
+    out property <color> txt_clr: theme == Theme.Light ? #2b2b22 : #e5e5e5;
+}
+
+// https://tailwindcss.com/docs/colors
+//       main_bg sub_bg app_bg main_txt app_txt
+// light    4       5      6      9        3
+// dark     9       8      7      3        4
+
+export global ClrThemeType {
+    in-out property <ClrTheme> clr_theme: ClrTheme.Slate;
+    out property <ClrProps> active: clr_theme == ClrTheme.Slate
+        ? slate
+        : gray;
+
+    out property <ClrProps> slate: {
+        main_bg: AppTheme.theme == Theme.Light ? #cbd5e1 : #1e293b,
+        sub_bg: AppTheme.theme == Theme.Light ? #94a3b8 : #334155,
+        app_bg: AppTheme.theme == Theme.Light ? #64748b : #475569,
+        main_txt: AppTheme.theme == Theme.Light ? #1e293b : #e2e8f0,
+        app_txt: AppTheme.theme == Theme.Light ? #e2e8f0 : #cbd5e1,
+    };
+    out property <ClrProps> gray: {
+        main_bg: AppTheme.theme == Theme.Light ? #d1d5db : #1e293b,
+        sub_bg: AppTheme.theme == Theme.Light ? #9ca3af : #1e293b,
+        app_bg: AppTheme.theme == Theme.Light ? #6b7280 : #334155,
+        main_txt: AppTheme.theme == Theme.Light ? #1f2937 : #e2e8f0,
+        app_txt: AppTheme.theme == Theme.Light ? #e5e7eb : #cbd5e1,
+    };
 }
 
 export global AppState {
@@ -47,8 +98,8 @@ component Tile inherits Rectangle {
 
     width: AppTheme.app_size * 1phx;
     height: AppTheme.app_size * 1phx;
-    background: #0c4a6e;
-    border-radius: 1rem;
+    background: AppTheme.app_bg;
+    border-radius: 1.5rem;
 }
 
 struct WeatherDataUi {
@@ -90,14 +141,17 @@ component DatetimeTile inherits Rectangle {
         text: "\{root.datetime.Y}/\{root.datetime.M}/\{root.datetime.D} \{root.datetime.h}:\{root.datetime.m}:\{root.datetime.s}";
         font-size: 2rem;
         font-weight: 700;
+        color: AppTheme.txt_clr;
     }
 }
 
 export component App inherits Window {
     default-font-family: "Noto Sans JP";
     default-font-size: AppTheme.font_size * 1phx;
+    default-font-weight: 400;
     width: AppTheme.display_width * 1phx;
     height: AppTheme.display_height * 1phx;
+    background: AppTheme.main_bg;
 
     in property <DatetimeState> datetime;
     in property <bool> can_bme_use;
@@ -109,58 +163,75 @@ export component App inherits Window {
             datetime: datetime;
         }
 
-        grid := GridLayout {
+        Rectangle {
             height: 100%;
             width: (AppTheme.app_size * 2 + AppTheme.grid_spacing * 3) * 1phx;
-            spacing: AppTheme.grid_spacing * 1phx;
-            padding: AppTheme.grid_spacing * 1phx;
 
-            RoomTempTile {
-                current_data: { can_use: can_bme_use };
-                weather_data: bme_result;
+            GridLayout {
+                height: 100%;
+                width: 100%;
+                spacing: AppTheme.grid_spacing * 1phx;
+                padding: AppTheme.grid_spacing * 1phx;
+
+                RoomTempTile {
+                    current_data: { can_use: can_bme_use };
+                    weather_data: bme_result;
+                }
+
+                Tile { }
+
+                Tile {
+                    row: 1;
+                    col: 0;
+                }
+
+                Tile {
+                    row: 1;
+                    col: 1;
+                }
             }
-
-            Tile { }
-
-            Tile { }
-
-            Tile { }
         }
 
-        VerticalLayout {
-            alignment: end;
+        Rectangle {
             width: 2rem;
             height: 100%;
+            background: AppTheme.side_bg;
 
-            setting := Image {
-                source: @image-url("./icons/setting.svg");
-            }
+            VerticalLayout {
+                alignment: end;
+                width: 100%;
+                height: 100%;
 
-            wifi_icon := Image {
-                source: @image-url("./icons/wifi-add.svg");
-                states [
-                    wifi-add when wifi_status == WifiStatus.Add: {
-                        source: @image-url("./icons/wifi-add.svg");
-                    }
-                    wifi-bad when wifi_status == WifiStatus.Bad: {
-                        source: @image-url("./icons/wifi-bad.svg");
-                    }
-                    wifi-off when wifi_status == WifiStatus.Off: {
-                        source: @image-url("./icons/wifi-off.svg");
-                    }
-                    wifi-excellent when wifi_status == WifiStatus.Excellent: {
-                        source: @image-url("./icons/wifi-excellent.svg");
-                    }
-                    wifi-good when wifi_status == WifiStatus.Good: {
-                        source: @image-url("./icons/wifi-good.svg");
-                    }
-                    wifi-fair when wifi_status == WifiStatus.Fair: {
-                        source: @image-url("./icons/wifi-fair.svg");
-                    }
-                    wifi-poor when wifi_status == WifiStatus.Poor: {
-                        source: @image-url("./icons/wifi-poor.svg");
-                    }
-                ]
+                wifi_icon := Image {
+                    source: @image-url("./icons/wifi-add.svg");
+                    states [
+                        wifi-add when wifi_status == WifiStatus.Add: {
+                            source: @image-url("./icons/wifi-add.svg");
+                        }
+                        wifi-bad when wifi_status == WifiStatus.Bad: {
+                            source: @image-url("./icons/wifi-bad.svg");
+                        }
+                        wifi-off when wifi_status == WifiStatus.Off: {
+                            source: @image-url("./icons/wifi-off.svg");
+                        }
+                        wifi-excellent when wifi_status == WifiStatus.Excellent: {
+                            source: @image-url("./icons/wifi-excellent.svg");
+                        }
+                        wifi-good when wifi_status == WifiStatus.Good: {
+                            source: @image-url("./icons/wifi-good.svg");
+                        }
+                        wifi-fair when wifi_status == WifiStatus.Fair: {
+                            source: @image-url("./icons/wifi-fair.svg");
+                        }
+                        wifi-poor when wifi_status == WifiStatus.Poor: {
+                            source: @image-url("./icons/wifi-poor.svg");
+                        }
+                    ]
+                }
+
+                setting := Image {
+                    source: @image-url("./icons/setting.svg");
+                }
             }
         }
     }
