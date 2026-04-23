@@ -40,11 +40,11 @@ export struct ClrProps {
 
 export global AppTheme {
     in-out property <bool> is_light: false;
-    out property <int> display_width: 1920;
-    out property <int> display_height: 720;
-    out property <int> font_size: 24;
-    out property <int> grid_spacing: font_size * 1.5;
-    out property <int> app_size: (display_height - grid_spacing * 3) / 2;
+    out property <physical-length> display_width: 1920phx;
+    out property <physical-length> display_height: 720phx;
+    out property <physical-length> font_size: 24phx;
+    out property <physical-length> grid_spacing: font_size * 1.5;
+    out property <physical-length> app_size: (display_height - grid_spacing * 3) / 2;
 }
 
 export global ClrTheme {
@@ -142,8 +142,8 @@ struct TileData {
 component Tile inherits Rectangle {
     in property <TileData> current_data: { can_use: false, is_open: false };
 
-    width: AppTheme.app_size * 1phx;
-    height: AppTheme.app_size * 1phx;
+    width: AppTheme.app_size;
+    height: AppTheme.app_size;
     background: ClrTheme.active.app_bg;
     border-radius: 1.5rem;
 }
@@ -194,10 +194,10 @@ component DatetimeTile inherits Rectangle {
 
 export component App inherits Window {
     default-font-family: "Noto Sans JP";
-    default-font-size: AppTheme.font_size * 1phx;
+    default-font-size: AppTheme.font_size;
     default-font-weight: 400;
-    width: AppTheme.display_width * 1phx;
-    height: AppTheme.display_height * 1phx;
+    width: AppTheme.display_width;
+    height: AppTheme.display_height;
     background: ClrTheme.active.main_bg;
 
     in property <DatetimeState> datetime;
@@ -212,13 +212,13 @@ export component App inherits Window {
 
         Rectangle {
             height: 100%;
-            width: (AppTheme.app_size * 2 + AppTheme.grid_spacing * 3) * 1phx;
+            width: (AppTheme.app_size * 2 + AppTheme.grid_spacing * 3);
 
             GridLayout {
                 height: 100%;
                 width: 100%;
-                spacing: AppTheme.grid_spacing * 1phx;
-                padding: AppTheme.grid_spacing * 1phx;
+                spacing: AppTheme.grid_spacing;
+                padding: AppTheme.grid_spacing;
 
                 RoomTempTile {
                     current_data: { can_use: can_bme_use };
