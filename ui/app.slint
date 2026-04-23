@@ -18,12 +18,7 @@ enum WifiStatus {
     Poor
 }
 
-enum Theme {
-    Light,
-    Dark,
-}
-
-enum ClrTheme {
+enum ClrThemeType {
     Slate,
     Gray, 
     Zinc, 
@@ -44,42 +39,93 @@ export struct ClrProps {
 }
 
 export global AppTheme {
-    out property <Theme> theme: Theme.Light;
+    in-out property <bool> is_light: false;
     out property <int> display_width: 1920;
     out property <int> display_height: 720;
     out property <int> font_size: 24;
     out property <int> grid_spacing: font_size * 1.5;
     out property <int> app_size: (display_height - grid_spacing * 3) / 2;
-    out property <color> main_bg: theme == Theme.Light ? #d8d8d0 : #262626;
-    out property <color> app_bg: theme == Theme.Light ? #7c7c67 : #404040;
-    out property <color> side_bg: theme == Theme.Light ? #abab9c : #222121;
-    out property <color> txt_clr: theme == Theme.Light ? #2b2b22 : #e5e5e5;
 }
 
-// https://tailwindcss.com/docs/colors
-//       main_bg sub_bg app_bg main_txt app_txt
-// light    4       5      6      9        3
-// dark     9       8      7      3        4
+export global ClrTheme {
+    in-out property <ClrThemeType> clr_theme: ClrThemeType.Taupe;
 
-export global ClrThemeType {
-    in-out property <ClrTheme> clr_theme: ClrTheme.Slate;
-    out property <ClrProps> active: clr_theme == ClrTheme.Slate
-        ? slate
-        : gray;
+    pure function get_active_props(t: ClrThemeType) -> ClrProps {
+        if (t == ClrThemeType.Slate) { return slate; }
+        if (t == ClrThemeType.Gray) { return gray; }
+        if (t == ClrThemeType.Zinc) { return zinc; }
+        if (t == ClrThemeType.Neutral) { return neutral; }
+        if (t == ClrThemeType.Stone) { return stone; }
+        if (t == ClrThemeType.Taupe) { return taupe; }
+        if (t == ClrThemeType.Mauve) { return mauve; }
+        if (t == ClrThemeType.Mist) { return mist; }
+        return olive;
+    }
+
+    out property <ClrProps> active: get_active_props(clr_theme);
 
     out property <ClrProps> slate: {
-        main_bg: AppTheme.theme == Theme.Light ? #cbd5e1 : #1e293b,
-        sub_bg: AppTheme.theme == Theme.Light ? #94a3b8 : #334155,
-        app_bg: AppTheme.theme == Theme.Light ? #64748b : #475569,
-        main_txt: AppTheme.theme == Theme.Light ? #1e293b : #e2e8f0,
-        app_txt: AppTheme.theme == Theme.Light ? #e2e8f0 : #cbd5e1,
+        main_bg: AppTheme.is_light ? #cbd5e1 : #1e293b,
+        sub_bg: AppTheme.is_light ? #94a3b8 : #334155,
+        app_bg: AppTheme.is_light ? #64748b : #475569,
+        main_txt: AppTheme.is_light ? #1e293b : #e2e8f0,
+        app_txt: AppTheme.is_light ? #e2e8f0 : #cbd5e1,
     };
     out property <ClrProps> gray: {
-        main_bg: AppTheme.theme == Theme.Light ? #d1d5db : #1e293b,
-        sub_bg: AppTheme.theme == Theme.Light ? #9ca3af : #1e293b,
-        app_bg: AppTheme.theme == Theme.Light ? #6b7280 : #334155,
-        main_txt: AppTheme.theme == Theme.Light ? #1f2937 : #e2e8f0,
-        app_txt: AppTheme.theme == Theme.Light ? #e5e7eb : #cbd5e1,
+        main_bg: AppTheme.is_light ? #d1d5db : #1f2937,
+        sub_bg: AppTheme.is_light ? #9ca3af : #374151,
+        app_bg: AppTheme.is_light ? #6b7280 : #4b5563,
+        main_txt: AppTheme.is_light ? #1f2937 : #e5e7eb,
+        app_txt: AppTheme.is_light ? #e5e7eb : #d1d5db,
+    };
+    out property <ClrProps> zinc: {
+        main_bg: AppTheme.is_light ? #d4d4d8 : #27272a,
+        sub_bg: AppTheme.is_light ? #a1a1aa : #3f3f46,
+        app_bg: AppTheme.is_light ? #71717a : #52525b,
+        main_txt: AppTheme.is_light ? #374151 : #e4e4e7,
+        app_txt: AppTheme.is_light ? #e4e4e7 : #d4d4d8,
+    };
+    out property <ClrProps> neutral: {
+        main_bg: AppTheme.is_light ? #d4d4d4 : #262626,
+        sub_bg: AppTheme.is_light ? #a3a3a3 : #404040,
+        app_bg: AppTheme.is_light ? #737373 : #525252,
+        main_txt: AppTheme.is_light ? #262626 : #e5e5e5,
+        app_txt: AppTheme.is_light ? #e5e5e5 : #d4d4d4,
+    };
+    out property <ClrProps> stone: {
+        main_bg: AppTheme.is_light ? #d6d3d1 : #292524,
+        sub_bg: AppTheme.is_light ? #a8a29e : #44403c,
+        app_bg: AppTheme.is_light ? #78716c : #57534e,
+        main_txt: AppTheme.is_light ? #292524 : #e7e5e4,
+        app_txt: AppTheme.is_light ? #e7e5e4 : #d6d3d1,
+    };
+    out property <ClrProps> taupe: {
+        main_bg: AppTheme.is_light ? #d8d2d0 : #2b2422,
+        sub_bg: AppTheme.is_light ? #aba09c : #473c39,
+        app_bg: AppTheme.is_light ? #7c6d67 : #5b4f4b,
+        main_txt: AppTheme.is_light ? #2b2422 : #e8e4e3,
+        app_txt: AppTheme.is_light ? #e8e4e3 : #d8d2d0,
+    };
+    out property <ClrProps> mauve: {
+        main_bg: AppTheme.is_light ? #d7d0d7 : #2a212c,
+        sub_bg: AppTheme.is_light ? #a89ea9 : #463947,
+        app_bg: AppTheme.is_light ? #79697b : #594c5b,
+        main_txt: AppTheme.is_light ? #2a212c : #e7e4e7,
+        app_txt: AppTheme.is_light ? #e7e4e7 : #d7d0d7,
+    };
+    out property <ClrProps> mist: {
+        main_bg: AppTheme.is_light ? #d0d6d8 : #22292b,
+        sub_bg: AppTheme.is_light ? #9ca8ab : #394447,
+        app_bg: AppTheme.is_light ? #67787c : #4b585b,
+        main_txt: AppTheme.is_light ? #22292b : #e3e7e8,
+        app_txt: AppTheme.is_light ? #e3e7e8 : #d0d6d8,
+    };
+    out property <ClrProps> olive: {
+        main_bg: AppTheme.is_light ? #d8d8d0 : #2b2b22,
+        sub_bg: AppTheme.is_light ? #abab9c : #474739,
+        app_bg: AppTheme.is_light ? #7c7c67 : #5b5b4b,
+        main_txt: AppTheme.is_light ? #2b2b22 : #e8e8e3,
+        app_txt: AppTheme.is_light ? #e8e8e3 : #d8d8d0,
     };
 }
 
@@ -98,7 +144,7 @@ component Tile inherits Rectangle {
 
     width: AppTheme.app_size * 1phx;
     height: AppTheme.app_size * 1phx;
-    background: AppTheme.app_bg;
+    background: ClrTheme.active.app_bg;
     border-radius: 1.5rem;
 }
 
@@ -112,6 +158,7 @@ component RoomTempTile inherits Tile {
     in property <WeatherDataUi> weather_data;
 
     if !(root.current_data.can-use): Text {
+        color: ClrTheme.active.app_txt;
         text: "現在ご利用できません";
         font-size: 1.2rem;
     }
@@ -141,7 +188,7 @@ component DatetimeTile inherits Rectangle {
         text: "\{root.datetime.Y}/\{root.datetime.M}/\{root.datetime.D} \{root.datetime.h}:\{root.datetime.m}:\{root.datetime.s}";
         font-size: 2rem;
         font-weight: 700;
-        color: AppTheme.txt_clr;
+        color: ClrTheme.active.main-txt;
     }
 }
 
@@ -151,7 +198,7 @@ export component App inherits Window {
     default-font-weight: 400;
     width: AppTheme.display_width * 1phx;
     height: AppTheme.display_height * 1phx;
-    background: AppTheme.main_bg;
+    background: ClrTheme.active.main_bg;
 
     in property <DatetimeState> datetime;
     in property <bool> can_bme_use;
@@ -195,7 +242,7 @@ export component App inherits Window {
         Rectangle {
             width: 2rem;
             height: 100%;
-            background: AppTheme.side_bg;
+            background: ClrTheme.active.sub_bg;
 
             VerticalLayout {
                 alignment: end;
@@ -227,6 +274,20 @@ export component App inherits Window {
                             source: @image-url("./icons/wifi-poor.svg");
                         }
                     ]
+                }
+
+                theme := Image {
+                    states [
+                        light when AppTheme.is_light: {
+                            source: @image-url("./icons/light.svg");
+                        }
+                        dark when !AppTheme.is_light: {
+                            source: @image-url("./icons/dark.svg");
+                        }
+                    ]
+                    TouchArea {
+                        clicked => { AppTheme.is_light = !AppTheme.is_light; }
+                    }
                 }
 
                 setting := Image {
