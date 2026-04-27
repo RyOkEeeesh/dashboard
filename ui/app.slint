@@ -2,7 +2,7 @@ import "./fonts/NotoSansJP-Regular.ttf";
 import "./fonts/NotoSansJP-Bold.ttf";
 import { StandardButton } from "std-widgets.slint";
 
-enum TileOpenStatus {
+enum AppOpenStatus {
     Normal,
     Main,
     Sub,
@@ -48,7 +48,7 @@ export global AppTheme {
 }
 
 export global ClrTheme {
-    in-out property <ClrThemeType> clr_theme: ClrThemeType.Taupe;
+    in-out property <ClrThemeType> clr_theme: ClrThemeType.Mist;
 
     pure function get_active_props(t: ClrThemeType) -> ClrProps {
         if (t == ClrThemeType.Slate) { return slate; }
@@ -131,16 +131,20 @@ export global ClrTheme {
 
 export global AppState {
     in-out property <int> name;
-    property <TileOpenStatus> open_status: TileOpenStatus.Normal;
+    property <AppOpenStatus> open_status: AppOpenStatus.Normal;
 }
 
-struct TileData {
+enum AppKinds {
+    RoomTemp,
+}
+
+struct AppData {
     can_use: bool,
     is_open: bool,
 }
 
-component Tile inherits Rectangle {
-    in property <TileData> current_data: { can_use: false, is_open: false };
+component App inherits Rectangle {
+    in property <AppData> current_data: { can_use: false, is_open: false };
 
     width: AppTheme.app_size;
     height: AppTheme.app_size;
@@ -154,7 +158,7 @@ struct WeatherDataUi {
     pressure: string,
 }
 
-component RoomTempTile inherits Tile {
+component RoomTempApp inherits App {
     in property <WeatherDataUi> weather_data;
 
     if !(root.current_data.can-use): Text {
@@ -177,8 +181,8 @@ struct DatetimeState {
     s: string,
 }
 
-component DatetimeTile inherits Rectangle {
-    in property <TileData> current_data;
+component DatetimeApp inherits Rectangle {
+    in property <AppData> current_data;
     in property <DatetimeState> datetime;
 
     horizontal-stretch: 1;
@@ -192,7 +196,7 @@ component DatetimeTile inherits Rectangle {
     }
 }
 
-export component App inherits Window {
+export component Main inherits Window {
     default-font-family: "Noto Sans JP";
     default-font-size: AppTheme.font_size;
     default-font-weight: 400;
@@ -204,9 +208,11 @@ export component App inherits Window {
     in property <bool> can_bme_use;
     in property <WeatherDataUi> bme_result;
     in property <WifiStatus> wifi_status;
+    in property <int> current_page: 0;
+    in property <int> num_page: 0;
 
     HorizontalLayout {
-        DatetimeTile {
+        DatetimeApp {
             datetime: datetime;
         }
 
@@ -214,25 +220,29 @@ export component App inherits Window {
             height: 100%;
             width: (AppTheme.app_size * 2 + AppTheme.grid_spacing * 3);
 
+            sgr := SwipeGestureHandler {
+
+            }
+
             GridLayout {
                 height: 100%;
                 width: 100%;
                 spacing: AppTheme.grid_spacing;
                 padding: AppTheme.grid_spacing;
 
-                RoomTempTile {
+                RoomTempApp {
                     current_data: { can_use: can_bme_use };
                     weather_data: bme_result;
                 }
 
-                Tile { }
+                App { }
 
-                Tile {
+                App {
                     row: 1;
                     col: 0;
                 }
 
-                Tile {
+                App {
                     row: 1;
                     col: 1;
                 }

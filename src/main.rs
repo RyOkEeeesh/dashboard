@@ -14,7 +14,7 @@ async fn main() {
 
     db_run(rx);
 
-    let ui = App::new().unwrap();
+    let ui = Main::new().unwrap();
     let ui_weak = ui.as_weak();
 
     let bme_result = Bme::new();
