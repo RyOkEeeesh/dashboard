@@ -1,12 +1,5 @@
 import "./fonts/NotoSansJP-Regular.ttf";
 import "./fonts/NotoSansJP-Bold.ttf";
-import { StandardButton, LineEdit } from "std-widgets.slint";
-
-enum AppOpenStatus {
-    Normal,
-    Main,
-    Sub,
-}
 
 enum WifiStatus {
     Add,
@@ -30,7 +23,7 @@ enum ClrThemeType {
     Olive
 }
 
-export struct ClrProps {
+struct ClrProps {
     main_bg: color,
     sub_bg: color,
     app_bg: color,
@@ -38,16 +31,14 @@ export struct ClrProps {
     app_txt: color,
 }
 
-export global AppTheme {
-    in-out property <bool> is_light: false;
+export global Theme {
     out property <physical-length> display_width: 1920phx;
     out property <physical-length> display_height: 720phx;
     out property <physical-length> font_size: 24phx;
     out property <physical-length> grid_spacing: font_size * 1.5;
     out property <physical-length> app_size: (display_height - grid_spacing * 3) / 2;
-}
 
-export global ClrTheme {
+    in-out property <bool> is_light: false;
     in-out property <ClrThemeType> clr_theme: ClrThemeType.Olive;
 
     pure function get_active_props(t: ClrThemeType) -> ClrProps {
@@ -81,117 +72,68 @@ export global ClrTheme {
     out property <ClrProps> active: get_active_props(clr_theme);
 
     out property <ClrProps> slate: {
-        main_bg: AppTheme.is_light ? #cbd5e1 : #1e293b,
-        sub_bg: AppTheme.is_light ? #94a3b8 : #334155,
-        app_bg: AppTheme.is_light ? #64748b : #475569,
-        main_txt: AppTheme.is_light ? #1e293b : #e2e8f0,
-        app_txt: AppTheme.is_light ? #e2e8f0 : #cbd5e1,
+        main_bg: is_light ? #cbd5e1 : #1e293b,
+        sub_bg: is_light ? #94a3b8 : #334155,
+        app_bg: is_light ? #64748b : #475569,
+        main_txt: is_light ? #1e293b : #e2e8f0,
+        app_txt: is_light ? #e2e8f0 : #cbd5e1,
     };
     out property <ClrProps> gray: {
-        main_bg: AppTheme.is_light ? #d1d5db : #1f2937,
-        sub_bg: AppTheme.is_light ? #9ca3af : #374151,
-        app_bg: AppTheme.is_light ? #6b7280 : #4b5563,
-        main_txt: AppTheme.is_light ? #1f2937 : #e5e7eb,
-        app_txt: AppTheme.is_light ? #e5e7eb : #d1d5db,
+        main_bg: is_light ? #d1d5db : #1f2937,
+        sub_bg: is_light ? #9ca3af : #374151,
+        app_bg: is_light ? #6b7280 : #4b5563,
+        main_txt: is_light ? #1f2937 : #e5e7eb,
+        app_txt: is_light ? #e5e7eb : #d1d5db,
     };
     out property <ClrProps> zinc: {
-        main_bg: AppTheme.is_light ? #d4d4d8 : #27272a,
-        sub_bg: AppTheme.is_light ? #a1a1aa : #3f3f46,
-        app_bg: AppTheme.is_light ? #71717a : #52525b,
-        main_txt: AppTheme.is_light ? #374151 : #e4e4e7,
-        app_txt: AppTheme.is_light ? #e4e4e7 : #d4d4d8,
+        main_bg: is_light ? #d4d4d8 : #27272a,
+        sub_bg: is_light ? #a1a1aa : #3f3f46,
+        app_bg: is_light ? #71717a : #52525b,
+        main_txt: is_light ? #374151 : #e4e4e7,
+        app_txt: is_light ? #e4e4e7 : #d4d4d8,
     };
     out property <ClrProps> neutral: {
-        main_bg: AppTheme.is_light ? #d4d4d4 : #262626,
-        sub_bg: AppTheme.is_light ? #a3a3a3 : #404040,
-        app_bg: AppTheme.is_light ? #737373 : #525252,
-        main_txt: AppTheme.is_light ? #262626 : #e5e5e5,
-        app_txt: AppTheme.is_light ? #e5e5e5 : #d4d4d4,
+        main_bg: is_light ? #d4d4d4 : #262626,
+        sub_bg: is_light ? #a3a3a3 : #404040,
+        app_bg: is_light ? #737373 : #525252,
+        main_txt: is_light ? #262626 : #e5e5e5,
+        app_txt: is_light ? #e5e5e5 : #d4d4d4,
     };
     out property <ClrProps> stone: {
-        main_bg: AppTheme.is_light ? #d6d3d1 : #292524,
-        sub_bg: AppTheme.is_light ? #a8a29e : #44403c,
-        app_bg: AppTheme.is_light ? #78716c : #57534e,
-        main_txt: AppTheme.is_light ? #292524 : #e7e5e4,
-        app_txt: AppTheme.is_light ? #e7e5e4 : #d6d3d1,
+        main_bg: is_light ? #d6d3d1 : #292524,
+        sub_bg: is_light ? #a8a29e : #44403c,
+        app_bg: is_light ? #78716c : #57534e,
+        main_txt: is_light ? #292524 : #e7e5e4,
+        app_txt: is_light ? #e7e5e4 : #d6d3d1,
     };
     out property <ClrProps> taupe: {
-        main_bg: AppTheme.is_light ? #d8d2d0 : #2b2422,
-        sub_bg: AppTheme.is_light ? #aba09c : #473c39,
-        app_bg: AppTheme.is_light ? #7c6d67 : #5b4f4b,
-        main_txt: AppTheme.is_light ? #2b2422 : #e8e4e3,
-        app_txt: AppTheme.is_light ? #e8e4e3 : #d8d2d0,
+        main_bg: is_light ? #d8d2d0 : #2b2422,
+        sub_bg: is_light ? #aba09c : #473c39,
+        app_bg: is_light ? #7c6d67 : #5b4f4b,
+        main_txt: is_light ? #2b2422 : #e8e4e3,
+        app_txt: is_light ? #e8e4e3 : #d8d2d0,
     };
     out property <ClrProps> mauve: {
-        main_bg: AppTheme.is_light ? #d7d0d7 : #2a212c,
-        sub_bg: AppTheme.is_light ? #a89ea9 : #463947,
-        app_bg: AppTheme.is_light ? #79697b : #594c5b,
-        main_txt: AppTheme.is_light ? #2a212c : #e7e4e7,
-        app_txt: AppTheme.is_light ? #e7e4e7 : #d7d0d7,
+        main_bg: is_light ? #d7d0d7 : #2a212c,
+        sub_bg: is_light ? #a89ea9 : #463947,
+        app_bg: is_light ? #79697b : #594c5b,
+        main_txt: is_light ? #2a212c : #e7e4e7,
+        app_txt: is_light ? #e7e4e7 : #d7d0d7,
     };
     out property <ClrProps> mist: {
-        main_bg: AppTheme.is_light ? #d0d6d8 : #22292b,
-        sub_bg: AppTheme.is_light ? #9ca8ab : #394447,
-        app_bg: AppTheme.is_light ? #67787c : #4b585b,
-        main_txt: AppTheme.is_light ? #22292b : #e3e7e8,
-        app_txt: AppTheme.is_light ? #e3e7e8 : #d0d6d8,
+        main_bg: is_light ? #d0d6d8 : #22292b,
+        sub_bg: is_light ? #9ca8ab : #394447,
+        app_bg: is_light ? #67787c : #4b585b,
+        main_txt: is_light ? #22292b : #e3e7e8,
+        app_txt: is_light ? #e3e7e8 : #d0d6d8,
     };
     out property <ClrProps> olive: {
-        main_bg: AppTheme.is_light ? #d8d8d0 : #2b2b22,
-        sub_bg: AppTheme.is_light ? #abab9c : #474739,
-        app_bg: AppTheme.is_light ? #7c7c67 : #5b5b4b,
-        main_txt: AppTheme.is_light ? #2b2b22 : #e8e8e3,
-        app_txt: AppTheme.is_light ? #e8e8e3 : #d8d8d0,
+        main_bg: is_light ? #d8d8d0 : #2b2b22,
+        sub_bg: is_light ? #abab9c : #474739,
+        app_bg: is_light ? #7c7c67 : #5b5b4b,
+        main_txt: is_light ? #2b2b22 : #e8e8e3,
+        app_txt: is_light ? #e8e8e3 : #d8d8d0,
     };
-}
-
-export global AppState {
-    in-out property <int> name;
-    in-out property <AppOpenStatus> open_status: AppOpenStatus.Normal;
-}
-
-enum AppKinds {
-    RoomTemp,
-}
-
-struct AppData {
-    can_use: bool,
-    is_open: bool,
-    
-}
-
-component AppBase inherits Rectangle {
-    width: AppTheme.app_size;
-    height: AppTheme.app_size;
-    border-radius: 1.5rem;
-}
-
-component App inherits AppBase {
-    in property <AppData> current_data: { can_use: false, is_open: false };
-
-    background: ClrTheme.active.app_bg;
-}
-
-struct WeatherDataUi {
-    temp: string,
-    humidity: string,
-    pressure: string,
-}
-
-
-
-component RoomTempApp inherits App {
-    in property <WeatherDataUi> weather_data;
-
-    if !(root.current_data.can-use): Text {
-        color: ClrTheme.active.app_txt;
-        text: "現在ご利用できません";
-        font-size: 1.2rem;
-    }
-
-    if (root.current_data.can-use): Text {
-        text: "\{root.weather_data.temp}℃";
-    }
 }
 
 struct DatetimeState {
@@ -204,7 +146,6 @@ struct DatetimeState {
 }
 
 component DatetimeApp inherits Rectangle {
-    in property <AppData> current_data;
     in property <DatetimeState> datetime;
 
     horizontal-stretch: 1;
@@ -214,20 +155,92 @@ component DatetimeApp inherits Rectangle {
         text: "\{root.datetime.Y}/\{root.datetime.M}/\{root.datetime.D} \{root.datetime.h}:\{root.datetime.m}:\{root.datetime.s}";
         font-size: 2rem;
         font-weight: 700;
-        color: ClrTheme.active.main-txt;
+        color: Theme.active.main-txt;
     }
 }
+
+export enum AppTypes {
+    RoomTemp,
+    Other,
+}
+
+struct AppData {
+    app_type: AppTypes,
+    slot: int,
+}
+
 
 struct SlotInfo {
     x: length,
     y: length,
 }
 
+struct WeatherDataUi {
+    temp: string,
+    humidity: string,
+    pressure: string,
+}
+
+export global AppStates {
+    in-out property <[AppData]> apps: [
+        {
+            app_type: AppTypes.RoomTemp,
+            slot: 1,
+        },
+        {
+            app_type: AppTypes.Other,
+            slot: 2,
+        },
+    ];
+    in property <bool> can_bme_use;
+    in property <WeatherDataUi> bme_result;
+}
+
+component AppShell inherits Rectangle {
+    width: Theme.app_size;
+    height: Theme.app_size;
+    border-radius: 1.5rem;
+}
+
+component AppBase inherits AppShell {
+    in property <bool> is_open: false;
+    background: Theme.active.app_bg;
+}
+
+component RoomTempApp inherits AppBase {
+    if !AppStates.can_bme_use: Text {
+        color: Theme.active.app_txt;
+        text: "現在ご利用できません";
+        font-size: 1.2rem;
+    }
+
+    if AppStates.can_bme_use: Text {
+        text: "\{AppStates.bme_result.temp}℃";
+    }
+}
+
+component App {
+    in property <AppTypes> app_type;
+    in property <SlotInfo> pos;
+
+    if app_type == AppTypes.RoomTemp: RoomTempApp {
+        x: pos.x;
+        y: pos.y;
+    }
+    if app_type == AppTypes.Other: AppBase {
+        x: pos.x;
+        y: pos.y;
+    }
+}
+
+
+
+
 component AppGrid inherits GridLayout {
     height: 100%;
-    width: (AppTheme.app_size * 2 + AppTheme.grid_spacing * 3);
-    padding: AppTheme.grid_spacing;
-    spacing: AppTheme.grid_spacing;
+    width: (Theme.app_size * 2 + Theme.grid_spacing * 3);
+    padding: Theme.grid_spacing;
+    spacing: Theme.grid_spacing;
     out property <[SlotInfo]> slots: [
         { x: s0.absolute-position.x, y: s0.absolute-position.y },
         { x: s1.absolute-position.x, y: s1.absolute-position.y },
@@ -235,22 +248,22 @@ component AppGrid inherits GridLayout {
         { x: s3.absolute-position.x, y: s3.absolute-position.y },
     ];
 
-    s0 := AppBase {
+    s0 := AppShell {
         col: 0;
         row: 0;
     }
 
-    s1 := AppBase {
+    s1 := AppShell {
         col: 0;
         row: 1;
     }
 
-    s2 := AppBase {
+    s2 := AppShell {
         col: 1;
         row: 0;
     }
 
-    s3 := AppBase {
+    s3 := AppShell {
         col: 1;
         row: 1;
     }
@@ -259,7 +272,7 @@ component AppGrid inherits GridLayout {
 component Home inherits Rectangle {
     clip: true;
     height: 100%;
-    width: (AppTheme.app_size * 2 + AppTheme.grid_spacing * 3);
+    width: (Theme.app_size * 2 + Theme.grid_spacing * 3);
 
     property <int> current_page: 0;
     property <int> num_page: 1;
@@ -295,24 +308,25 @@ component Home inherits Rectangle {
                 }
             ]
 
-            AppGrid { }
+            grid := AppGrid { }
 
-            AppGrid { }
+            for app in AppStates.apps: App {
+                app_type: app.app_type;
+                pos: grid.slots[app.slot];
+            }
         }
     }
 }
 
 export component Main inherits Window {
     default-font-family: "Noto Sans JP";
-    default-font-size: AppTheme.font_size;
+    default-font-size: Theme.font_size;
     default-font-weight: 400;
-    width: AppTheme.display_width;
-    height: AppTheme.display_height;
-    background: ClrTheme.active.main_bg;
+    width: Theme.display_width;
+    height: Theme.display_height;
+    background: Theme.active.main_bg;
 
     in property <DatetimeState> datetime;
-    in property <bool> can_bme_use;
-    in property <WeatherDataUi> bme_result;
     in property <WifiStatus> wifi_status;
 
     HorizontalLayout {
@@ -325,7 +339,7 @@ export component Main inherits Window {
         Rectangle {
             width: 2rem;
             height: 100%;
-            background: ClrTheme.active.sub_bg;
+            background: Theme.active.sub_bg;
 
             VerticalLayout {
                 alignment: end;
@@ -361,16 +375,16 @@ export component Main inherits Window {
 
                 theme := Image {
                     states [
-                        light when AppTheme.is_light: {
+                        light when Theme.is_light: {
                             source: @image-url("./icons/light.svg");
                         }
-                        dark when !AppTheme.is_light: {
+                        dark when !Theme.is_light: {
                             source: @image-url("./icons/dark.svg");
                         }
                     ]
                     TouchArea {
                         clicked => {
-                            AppTheme.is_light = !AppTheme.is_light;
+                            Theme.is_light = !Theme.is_light;
                         }
                     }
                 }

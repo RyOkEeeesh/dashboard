@@ -19,7 +19,7 @@ async fn main() {
 
     let bme_result = Bme::new();
     if bme_result.is_ok() {
-        ui.set_can_bme_use(true);
+        ui.global::<AppStates>().set_can_bme_use(true);
     }
 
     let bme_mod = Arc::new(Mutex::new(bme_result));
@@ -75,7 +75,7 @@ async fn main() {
                             let ui_result = result.clone();
                             ui_weak
                                 .upgrade_in_event_loop(move |ui| {
-                                    ui.set_bme_result(to_ui_weather_data(ui_result))
+                                    ui.global::<AppStates>().set_bme_result(to_ui_weather_data(ui_result))
                                 })
                                 .ok();
                             let _ = tx.try_send(DbRequest::SaveWeather(result));
