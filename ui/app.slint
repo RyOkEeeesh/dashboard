@@ -37,6 +37,7 @@ export global Theme {
     out property <physical-length> font_size: 24phx;
     out property <physical-length> grid_spacing: font_size * 1.5;
     out property <physical-length> app_size: (display_height - grid_spacing * 3) / 2;
+    out property <physical-length> home_width: (Theme.app_size * 2 + Theme.grid_spacing * 3);
 
     in-out property <bool> is_light: false;
     in-out property <ClrThemeType> clr_theme: ClrThemeType.Olive;
@@ -189,10 +190,10 @@ export global AppStates {
         },
         {
             app_type: AppTypes.Other,
-            slot: 2,
+            slot: 4,
         },
     ];
-    in-out property <int> num_page: 0;
+    in-out property <int> num_page: 1;
     in property <bool> can_bme_use;
     in property <WeatherDataUi> bme_result;
 }
@@ -234,21 +235,11 @@ component App {
     }
 }
 
-component HomeBase inherits Rectangle {
-    height: 100%;
-    width: (Theme.app_size * 2 + Theme.grid_spacing * 3);
-}
-
-component Home inherits HomeBase {
+component Home inherits Rectangle {
     property <int> current_page: 0;
     clip: true;
-
-    pure function get_slot(slot: int) -> SlotInfo {
-        {
-            x: floor(slot / 4) * (Theme.app_size * 2 + Theme.grid_spacing * 3) + Theme.grid_spacing + mod(slot, 2) * (Theme.app_size + Theme.grid_spacing),
-            y: Theme.grid_spacing + floor(mod(slot, 4) / 2) * (Theme.app_size + Theme.grid_spacing)
-        }
-    }
+    width: Theme.home_width;
+    height: 100%;
 
     sgr := SwipeGestureHandler {
         handle-swipe-right: current_page > 0;
@@ -261,13 +252,15 @@ component Home inherits HomeBase {
             }
         }
 
-        HorizontalLayout {
+        Rectangle {
             property <length> position: - current-page * root.width;
             animate position {
                 duration: 200ms;
                 easing: ease-in-out;
             }
             property <length> swipe-offset;
+            width: Theme.home_width * (AppStates.num_page + 1);
+            height: 100%;
             x: position + swipe-offset;
             states [
                 swiping when sgr.swiping: {
@@ -281,7 +274,13 @@ component Home inherits HomeBase {
                 }
             ]
 
-            for _ in AppStates.num_page: HomeBase { }
+            pure function get_slot(slot: int) -> SlotInfo {
+                {
+                    x: floor(slot / 4) * Theme.home_width + Theme.grid_spacing + mod(slot, 2) * (Theme.app_size + Theme.grid_spacing),
+                    y: Theme.grid_spacing + floor(mod(slot, 4) / 2) * (Theme.app_size + Theme.grid_spacing)
+                }
+            }
+
             for app in AppStates.apps: App {
                 app_type: app.app_type;
                 pos: get_slot(app.slot);
