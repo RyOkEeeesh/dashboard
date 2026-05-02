@@ -207,6 +207,8 @@ component AppShell inherits Rectangle {
 component AppBase inherits AppShell {
     in property <bool> is_open: false;
     background: Theme.active.app_bg;
+    width: 100%;
+    height: 100%;
 }
 
 component RoomTempApp inherits AppBase {
@@ -221,18 +223,13 @@ component RoomTempApp inherits AppBase {
     }
 }
 
-component App {
+component App inherits Rectangle {
     in property <AppTypes> app_type;
-    in property <SlotInfo> pos;
+    width: Theme.app_size;
+    height: Theme.app_size;
 
-    if app_type == AppTypes.RoomTemp: RoomTempApp {
-        x: pos.x;
-        y: pos.y;
-    }
-    if app_type == AppTypes.Other: AppBase {
-        x: pos.x;
-        y: pos.y;
-    }
+    if app_type == AppTypes.RoomTemp: RoomTempApp { }
+    if app_type == AppTypes.Other: AppBase { }
 }
 
 component Home inherits Rectangle {
@@ -275,15 +272,19 @@ component Home inherits Rectangle {
             ]
 
             pure function get_slot(slot: int) -> SlotInfo {
-                {
+                let result = {
                     x: floor(slot / 4) * Theme.home_width + Theme.grid_spacing + mod(slot, 2) * (Theme.app_size + Theme.grid_spacing),
                     y: Theme.grid_spacing + floor(mod(slot, 4) / 2) * (Theme.app_size + Theme.grid_spacing)
-                }
+                };
+                debug(result);
+                result
             }
 
             for app in AppStates.apps: App {
                 app_type: app.app_type;
-                pos: get_slot(app.slot);
+                property <SlotInfo> pos: get_slot(app.slot);
+                x: pos.x;
+                y: pos.y;
             }
         }
     }
