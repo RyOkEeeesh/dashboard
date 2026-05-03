@@ -40,7 +40,7 @@ export global Theme {
     out property <physical-length> home_width: (Theme.app_size * 2 + Theme.grid_spacing * 3);
 
     in-out property <bool> is_light: false;
-    in-out property <ClrThemeType> clr_theme: ClrThemeType.Olive;
+    in-out property <ClrThemeType> clr_theme: ClrThemeType.Neutral;
 
     pure function get_active_props(t: ClrThemeType) -> ClrProps {
         if (t == ClrThemeType.Slate) {
@@ -239,12 +239,12 @@ component Home inherits Rectangle {
     height: 100%;
 
     sgr := SwipeGestureHandler {
-        handle-swipe-right: current_page > 0;
-        handle-swipe-left: current_page < AppStates.num_page;
+        handle-swipe-right: true;
+        handle-swipe-left: true;
         swiped => {
-            if self.current-position.x > self.pressed-position.x + self.width / 4 {
+            if (self.current-position.x > self.pressed-position.x + self.width / 4) && (root.current_page > 0) {
                 current-page -= 1;
-            } else if self.current-position.x < self.pressed-position.x - self.width / 4 {
+            } else if (self.current-position.x < self.pressed-position.x - self.width / 4) && (root.current_page < AppStates.num_page) {
                 current-page += 1;
             }
         }
@@ -255,13 +255,20 @@ component Home inherits Rectangle {
                 duration: 200ms;
                 easing: ease-in-out;
             }
+            property <length> max_left_offset: root.current_page * root.width;
+            property <length> max_right_offset: (AppStates.num_page - root.current_page) * root.width;
+            property <length> delta_x: sgr.current-position.x - sgr.pressed-position.x;
+            property <length> limit: root.width / 5;
+            property <length> over_delta: (delta_x > max_left_offset) ? (delta_x - max_left_offset) : (delta_x < -max_right_offset) ? (delta_x + max_right_offset) : 0px;
+            property <length> elastic_offset: limit * (over_delta / (Math.abs(over_delta) + limit * 2));
             property <length> swipe-offset;
+
             width: Theme.home_width * (AppStates.num_page + 1);
             height: 100%;
             x: position + swipe-offset;
             states [
                 swiping when sgr.swiping: {
-                    swipe-offset: sgr.current-position.x - sgr.pressed-position.x;
+                    swipe-offset: (delta_x > max_left_offset) ? (max_left_offset + elastic_offset) : (delta_x < -max_right_offset) ? (-max_right_offset + elastic_offset) : delta_x;
                     out {
                         animate swipe-offset {
                             duration: 200ms;
@@ -270,14 +277,11 @@ component Home inherits Rectangle {
                     }
                 }
             ]
-
             pure function get_slot(slot: int) -> SlotInfo {
-                let result = {
+                {
                     x: floor(slot / 4) * Theme.home_width + Theme.grid_spacing + mod(slot, 2) * (Theme.app_size + Theme.grid_spacing),
                     y: Theme.grid_spacing + floor(mod(slot, 4) / 2) * (Theme.app_size + Theme.grid_spacing)
-                };
-                debug(result);
-                result
+                }
             }
 
             for app in AppStates.apps: App {
