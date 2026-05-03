@@ -168,10 +168,11 @@ export enum AppTypes {
 struct AppData {
     app_type: AppTypes,
     slot: int,
+    title: string,
 }
 
 
-struct SlotInfo {
+struct Position {
     x: length,
     y: length,
 }
@@ -187,10 +188,12 @@ export global AppStates {
         {
             app_type: AppTypes.RoomTemp,
             slot: 1,
+            title: "室温",
         },
         {
             app_type: AppTypes.Other,
             slot: 4,
+            title: "アプリ",
         },
     ];
     in-out property <int> num_page: 1;
@@ -198,15 +201,8 @@ export global AppStates {
     in property <WeatherDataUi> bme_result;
 }
 
-component AppShell inherits Rectangle {
-    width: Theme.app_size;
-    height: Theme.app_size;
-    border-radius: 1.5rem;
-}
-
-component AppBase inherits AppShell {
+component AppBase inherits Rectangle {
     in property <bool> is_open: false;
-    background: Theme.active.app_bg;
     width: 100%;
     height: 100%;
 }
@@ -225,11 +221,35 @@ component RoomTempApp inherits AppBase {
 
 component App inherits Rectangle {
     in property <AppTypes> app_type;
+    in property <int> slot;
+    in property <string> title;
+
+    out property <bool> is_open;
+    property <Position> pos: {
+        x: floor(slot / 4) * Theme.home_width + Theme.grid_spacing + mod(slot, 2) * (Theme.app_size + Theme.grid_spacing),
+        y: Theme.grid_spacing + floor(mod(slot, 4) / 2) * (Theme.app_size + Theme.grid_spacing),
+    };
+    property <Position> open_pos: {
+        x: floor(slot / 4) * Theme.home_width + Theme.grid_spacing,
+        y: Theme.grid_spacing,
+    };
+
+    x: pos.x;
+    y: pos.y;
+    background: Theme.active.app_bg;
     width: Theme.app_size;
     height: Theme.app_size;
+    border-radius: 1.5rem;
+    clip: true;
 
-    if app_type == AppTypes.RoomTemp: RoomTempApp { }
-    if app_type == AppTypes.Other: AppBase { }
+    header := Rectangle { 
+
+    }
+
+    container := Rectangle {
+        if app_type == AppTypes.RoomTemp: RoomTempApp { }
+        if app_type == AppTypes.Other: AppBase { }
+    }
 }
 
 component Home inherits Rectangle {
@@ -253,15 +273,15 @@ component Home inherits Rectangle {
             property <length> position: - current-page * root.width;
             animate position {
                 duration: 200ms;
-                easing: ease-in-out;
+                easing: ease-out-circ;
             }
-            property <length> max_left_offset: root.current_page * root.width;
-            property <length> max_right_offset: (AppStates.num_page - root.current_page) * root.width;
-            property <length> delta_x: sgr.current-position.x - sgr.pressed-position.x;
-            property <length> limit: root.width / 5;
-            property <length> over_delta: (delta_x > max_left_offset) ? (delta_x - max_left_offset) : (delta_x < -max_right_offset) ? (delta_x + max_right_offset) : 0px;
-            property <length> elastic_offset: limit * (over_delta / (Math.abs(over_delta) + limit * 2));
-            property <length> swipe-offset;
+            property <physical-length> max_left_offset: root.current_page * root.width;
+            property <physical-length> max_right_offset: (AppStates.num_page - root.current_page) * root.width;
+            property <physical-length> limit: root.width / 5;
+            property <physical-length> delta_x: sgr.current-position.x - sgr.pressed-position.x;
+            property <physical-length> over_delta: (delta_x > max_left_offset) ? (delta_x - max_left_offset) : (delta_x < -max_right_offset) ? (delta_x + max_right_offset) : 0px;
+            property <physical-length> elastic_offset: limit * (over_delta / (Math.abs(over_delta) + limit * 2));
+            property <physical-length> swipe-offset;
 
             width: Theme.home_width * (AppStates.num_page + 1);
             height: 100%;
@@ -272,23 +292,16 @@ component Home inherits Rectangle {
                     out {
                         animate swipe-offset {
                             duration: 200ms;
-                            easing: ease-in-out;
+                            easing: ease-out-circ;
                         }
                     }
                 }
             ]
-            pure function get_slot(slot: int) -> SlotInfo {
-                {
-                    x: floor(slot / 4) * Theme.home_width + Theme.grid_spacing + mod(slot, 2) * (Theme.app_size + Theme.grid_spacing),
-                    y: Theme.grid_spacing + floor(mod(slot, 4) / 2) * (Theme.app_size + Theme.grid_spacing)
-                }
-            }
 
             for app in AppStates.apps: App {
                 app_type: app.app_type;
-                property <SlotInfo> pos: get_slot(app.slot);
-                x: pos.x;
-                y: pos.y;
+                slot: app.slot;
+                title: app.title;
             }
         }
     }
