@@ -263,12 +263,17 @@ component App inherits Rectangle {
 
     x: is_open ? pos_open.x : pos.x;
     y: is_open ? pos_open.y : pos.y;
-    z: is_open ? 100 : 1;
+    // z: is_open ? 100 : 1;
     background: Theme.active.app_bg;
     width: is_open ? Theme.app_size_open : Theme.app_size;
     height: root.width;
     border-radius: 1.5rem;
     clip: true;
+
+    animate x, y, width, height {
+        duration: 250ms;
+        easing: ease-out-expo;
+    }
 
     main := VerticalLayout {
         padding: is_open ? Theme.grid_spacing : 0;
@@ -282,6 +287,8 @@ component App inherits Rectangle {
             Image {
                 x: 0;
                 y: 0;
+                width: 2rem;
+                height: 2rem;
                 source: @image-url("./icons/back.svg");
 
                 TouchArea {
