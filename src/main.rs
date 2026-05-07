@@ -94,9 +94,6 @@ async fn main() {
 
 fn to_ui_datetime(time: chrono::DateTime<Local>) -> DatetimeState {
     DatetimeState {
-        Y: format!("{}", time.year()).into(),
-        M: format!("{:02}", time.month()).into(),
-        D: format!("{:02}", time.day()).into(),
         h: format!("{:01}", time.hour()).into(),
         m: format!("{:02}", time.minute()).into(),
         s: format!("{:02}", time.second()).into(),

@@ -1,5 +1,6 @@
 import "./fonts/NotoSansJP-Regular.ttf";
 import "./fonts/NotoSansJP-Bold.ttf";
+import "./fonts/Inter-Regular.ttf";
 
 enum WifiStatus {
     Add,
@@ -139,9 +140,6 @@ export global Theme {
 }
 
 struct DatetimeState {
-    Y: string,
-    M: string,
-    D: string,
     h: string,
     m: string,
     s: string,
@@ -153,11 +151,50 @@ component DatetimeApp inherits Rectangle {
     horizontal-stretch: 1;
     height: 100%;
 
-    Text {
-        text: "\{root.datetime.Y}/\{root.datetime.M}/\{root.datetime.D} \{root.datetime.h}:\{root.datetime.m}:\{root.datetime.s}";
-        font-size: 2rem;
-        font-weight: 700;
-        color: Theme.active.main-txt;
+    VerticalLayout {
+        alignment: center;
+
+        HorizontalLayout {
+            property <length> time_font_size: 8rem;
+            property <length> sec_font_size: 5rem;
+            property <length> sec_padding: 0.8rem;
+            alignment: center;
+            spacing: 0.5rem;
+
+            Text {
+                text: root.datetime.h;
+                font-family: "Inter";
+                font-weight: 400;
+                font-size: time_font_size;
+            }
+
+            Text {
+                text: ":";
+                font-family: "Inter";
+                font-weight: 400;
+                font-size: time_font_size;
+            }
+
+            Text {
+                text: root.datetime.m;
+                font-family: "Inter";
+                font-weight: 400;
+                font-size: time_font_size;
+            }
+
+            VerticalLayout {
+                width: sec_font_size * 0.6 * 2 + sec_padding;
+                alignment: end;
+                padding-left: sec_padding;
+                padding-bottom: sec_padding;
+                Text {
+                    text: root.datetime.s;
+                    font-family: "Inter";
+                    font-weight: 400;
+                    font-size: sec_font_size;
+                }
+            }
+        }
     }
 }
 
@@ -187,7 +224,7 @@ export global AppStates {
     in-out property <[AppData]> apps: [
         {
             app_type: AppTypes.RoomTemp,
-            slot: 1,
+            slot: 3,
         },
         {
             app_type: AppTypes.Other,
@@ -209,6 +246,7 @@ component AppBase inherits Rectangle {
     callback open_touch();
 
     TouchArea {
+        visible: is_open || AppStates.opne_app == AppTypes.None;
         clicked => {
             if is_open {
                 open_touch();
@@ -250,29 +288,25 @@ component App inherits Rectangle {
         y: Theme.grid_spacing,
     };
     property <bool> is_open: AppStates.opne_app == root.app_type;
-    property <string> title;
+    property <string> title: "アプリ";
 
     states [
         room-temp when app_type == AppTypes.RoomTemp: {
             title: "室温";
         }
-        other when app_type == AppTypes.Other: {
-            title: "アプリ";
-        }
     ]
 
     x: is_open ? pos_open.x : pos.x;
     y: is_open ? pos_open.y : pos.y;
-    // z: is_open ? 100 : 1;
     background: Theme.active.app_bg;
     width: is_open ? Theme.app_size_open : Theme.app_size;
-    height: root.width;
+    height: is_open ? Theme.app_size_open : Theme.app_size;
     border-radius: 1.5rem;
     clip: true;
 
     animate x, y, width, height {
         duration: 250ms;
-        easing: ease-out-expo;
+        easing: ease-out-quart;
     }
 
     main := VerticalLayout {
