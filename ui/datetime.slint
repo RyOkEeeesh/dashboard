@@ -1,0 +1,56 @@
+import "fonts/Inter-Regular.ttf";
+import "fonts/Inter-Light.ttf";
+import { AppStates, Theme } from "global.slint";
+export component DatetimeApp inherits Rectangle {
+    horizontal-stretch: 1;
+    height: 100%;
+
+    VerticalLayout {
+        alignment: center;
+
+        HorizontalLayout {
+            property <length> time_font_size: 8rem;
+            property <length> sec_font_size: 5rem;
+            property <length> sec_padding: 0.8rem;
+            alignment: center;
+
+            Text {
+                text: AppStates.datetime.h;
+                font-family: "Inter";
+                font-weight: 200;
+                font-size: time_font_size;
+                color: Theme.active.main-txt;
+            }
+
+            Text {
+                text: ":";
+                font-family: "Inter";
+                font-weight: 200;
+                font-size: time_font_size;
+                color: Theme.active.main-txt;
+            }
+
+            Text {
+                text: AppStates.datetime.m;
+                font-family: "Inter";
+                font-weight: 200;
+                font-size: time_font_size;
+                color: Theme.active.main-txt;
+            }
+
+            VerticalLayout {
+                width: sec_font_size * 0.6 * 2 + sec_padding;
+                alignment: end;
+                padding-left: sec_padding;
+                padding-bottom: sec_padding;
+                Text {
+                    text: AppStates.datetime.s;
+                    font-family: "Inter";
+                    font-weight: 400;
+                    font-size: sec_font_size;
+                    color: Theme.active.main-txt;
+                }
+            }
+        }
+    }
+}

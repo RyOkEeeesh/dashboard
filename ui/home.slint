@@ -1,0 +1,225 @@
+import { AppStates, AppTypes, Position, Theme } from "global.slint";
+export component DatetimeApp inherits Rectangle {
+    horizontal-stretch: 1;
+    height: 100%;
+
+    VerticalLayout {
+        alignment: center;
+
+        HorizontalLayout {
+            property <length> time_font_size: 8rem;
+            property <length> sec_font_size: 5rem;
+            property <length> sec_padding: 0.8rem;
+            alignment: center;
+
+            Text {
+                text: AppStates.datetime.h;
+                font-family: "Inter";
+                font-weight: 200;
+                font-size: time_font_size;
+            }
+
+            Text {
+                text: ":";
+                font-family: "Inter";
+                font-weight: 200;
+                font-size: time_font_size;
+            }
+
+            Text {
+                text: AppStates.datetime.m;
+                font-family: "Inter";
+                font-weight: 200;
+                font-size: time_font_size;
+            }
+
+            VerticalLayout {
+                width: sec_font_size * 0.6 * 2 + sec_padding;
+                alignment: end;
+                padding-left: sec_padding;
+                padding-bottom: sec_padding;
+                Text {
+                    text: AppStates.datetime.s;
+                    font-family: "Inter";
+                    font-weight: 400;
+                    font-size: sec_font_size;
+                }
+            }
+        }
+    }
+}
+
+component AppBase inherits Rectangle {
+    in property <AppTypes> app_type: AppTypes.Other;
+    out property <bool> is_open: AppStates.opne_app == root.app_type;
+    width: 100%;
+    height: 100%;
+
+    callback open_touch();
+
+    TouchArea {
+        visible: is_open || AppStates.opne_app == AppTypes.None;
+        clicked => {
+            if is_open {
+                open_touch();
+            } else {
+                AppStates.opne_app = app_type;
+            }
+        }
+    }
+}
+
+component RoomTempApp inherits AppBase {
+    app_type: AppTypes.RoomTemp;
+
+    open_touch => {
+        debug("タッチされました");
+    }
+
+    if !AppStates.can_bme_use: Text {
+        color: Theme.active.app_txt;
+        text: "現在ご利用できません";
+        font-size: 1.2rem;
+    }
+
+    if AppStates.can_bme_use: Text {
+        text: "\{AppStates.bme_result.temp}℃";
+    }
+}
+
+component App inherits Rectangle {
+    in property <AppTypes> app_type;
+    in property <int> slot;
+
+    property <Position> pos: {
+        x: floor(slot / 4) * Theme.home_width + Theme.grid_spacing + mod(slot, 2) * (Theme.app_size + Theme.grid_spacing),
+        y: Theme.grid_spacing + floor(mod(slot, 4) / 2) * (Theme.app_size + Theme.grid_spacing),
+    };
+    property <Position> pos_open: {
+        x: floor(slot / 4) * Theme.home_width + Theme.grid_spacing,
+        y: Theme.grid_spacing,
+    };
+    property <duration> toggle_duration: 250ms;
+    property <bool> is_open: AppStates.opne_app == root.app_type;
+    property <string> title: "アプリ";
+
+    states [
+        room-temp when app_type == AppTypes.RoomTemp: {
+            title: "室温";
+        }
+    ]
+
+    x: is_open ? pos_open.x : pos.x;
+    y: is_open ? pos_open.y : pos.y;
+    background: Theme.active.app_bg;
+    width: is_open ? Theme.app_size_open : Theme.app_size;
+    height: is_open ? Theme.app_size_open : Theme.app_size;
+    border-radius: 1.5rem;
+    clip: true;
+
+    animate x, y, width, height {
+        duration: toggle_duration;
+        easing: ease-out-quart;
+    }
+
+    main := VerticalLayout {
+        padding: is_open ? Theme.grid_spacing : 0;
+        spacing: is_open ? 0.5rem : 0;
+
+        animate padding, spacing { duration: toggle_duration / 2; }
+
+        header := Rectangle {
+            width: 100%;
+            height: is_open ? 2rem : 0;
+            opacity: is_open ? 1 : 0;
+
+            animate opacity { duration: toggle_duration; }
+
+            Image {
+                x: 0;
+                y: 0;
+                width: 2rem;
+                height: 2rem;
+                source: @image-url("./icons/back.svg");
+
+                TouchArea {
+                    clicked => {
+                        AppStates.opne_app = AppTypes.None;
+                    }
+                }
+            }
+
+            Text {
+                x: 0;
+                y: 0;
+                width: 100%;
+                height: 100%;
+                text: title;
+                font-size: 1.5rem;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+
+        container := Rectangle {
+            vertical-stretch: 1;
+            if app_type == AppTypes.RoomTemp: RoomTempApp { }
+            if app_type == AppTypes.Other: AppBase { }
+        }
+    }
+}
+
+export component Home inherits Rectangle {
+    property <int> current_page: 0;
+    clip: true;
+    width: Theme.home_width;
+    height: 100%;
+
+    sgr := SwipeGestureHandler {
+        handle-swipe-right: AppStates.opne_app == AppTypes.None;
+        handle-swipe-left: AppStates.opne_app == AppTypes.None;
+        swiped => {
+            if (self.current-position.x > self.pressed-position.x + self.width / 4) && (root.current_page > 0) {
+                current-page -= 1;
+            } else if (self.current-position.x < self.pressed-position.x - self.width / 4) && (root.current_page < AppStates.num_page) {
+                current-page += 1;
+            }
+        }
+
+        Rectangle {
+            property <length> position: - current-page * root.width;
+            animate position {
+                duration: 200ms;
+                easing: ease-out-circ;
+            }
+            property <physical-length> max_left_offset: root.current_page * root.width;
+            property <physical-length> max_right_offset: (AppStates.num_page - root.current_page) * root.width;
+            property <physical-length> limit: root.width / 5;
+            property <physical-length> delta_x: sgr.current-position.x - sgr.pressed-position.x;
+            property <physical-length> over_delta: (delta_x > max_left_offset) ? (delta_x - max_left_offset) : (delta_x < -max_right_offset) ? (delta_x + max_right_offset) : 0px;
+            property <physical-length> elastic_offset: limit * (over_delta / (Math.abs(over_delta) + limit * 2));
+            property <physical-length> swipe-offset;
+
+            width: Theme.home_width * (AppStates.num_page + 1);
+            height: 100%;
+            x: position + swipe-offset;
+            states [
+                swiping when sgr.swiping: {
+                    swipe-offset: (delta_x > max_left_offset) ? (max_left_offset + elastic_offset) : (delta_x < -max_right_offset) ? (-max_right_offset + elastic_offset) : delta_x;
+                    out {
+                        animate swipe-offset {
+                            duration: 200ms;
+                            easing: ease-out-circ;
+                        }
+                    }
+                }
+            ]
+
+            for app in AppStates.apps: App {
+                app_type: app.app_type;
+                slot: app.slot;
+            }
+        }
+    }
+}
+

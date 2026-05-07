@@ -1,6 +1,9 @@
-slint::include_modules!();
+mod ui {
+    slint::include_modules!();
+}
+use ui::*;
 
-use chrono::{Datelike, Local, Timelike};
+use chrono::{Local, Timelike};
 use std::sync::Arc;
 use tokio::sync::{Mutex, mpsc};
 use tokio_cron_scheduler::{Job, JobScheduler};
@@ -25,7 +28,7 @@ async fn main() {
     let bme_mod = Arc::new(Mutex::new(bme_result));
 
     // init
-    ui.set_datetime(to_ui_datetime(Local::now()));
+    ui.global::<AppStates>().set_datetime(to_ui_datetime(Local::now()));
 
     // 秒数がちょうど切り替わるタイミングまで待つ
     let sleep_ms = (1_000_000_000 - Local::now().nanosecond()) / 1_000_000;
@@ -47,7 +50,7 @@ async fn main() {
 
                     ui_weak
                         .upgrade_in_event_loop(move |ui| {
-                            ui.set_datetime(state);
+                            ui.global::<AppStates>().set_datetime(state);
                         })
                         .ok();
                 });
@@ -75,7 +78,8 @@ async fn main() {
                             let ui_result = result.clone();
                             ui_weak
                                 .upgrade_in_event_loop(move |ui| {
-                                    ui.global::<AppStates>().set_bme_result(to_ui_weather_data(ui_result))
+                                    ui.global::<AppStates>()
+                                        .set_bme_result(to_ui_weather_data(ui_result))
                                 })
                                 .ok();
                             let _ = tx.try_send(DbRequest::SaveWeather(result));

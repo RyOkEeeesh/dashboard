@@ -1,0 +1,60 @@
+import { AppStates, WifiStatus, Theme } from "global.slint";
+
+export component Side inherits Rectangle {
+    width: 2rem;
+    height: 100%;
+    background: Theme.active.sub_bg;
+
+    VerticalLayout {
+        alignment: end;
+        width: 100%;
+        height: 100%;
+
+        wifi_icon := Image {
+            source: @image-url("./icons/wifi-add.svg");
+            states [
+                wifi-add when AppStates.wifi_status == WifiStatus.Add: {
+                    source: @image-url("./icons/wifi-add.svg");
+                }
+                wifi-bad when AppStates.wifi_status == WifiStatus.Bad: {
+                    source: @image-url("./icons/wifi-bad.svg");
+                }
+                wifi-off when AppStates.wifi_status == WifiStatus.Off: {
+                    source: @image-url("./icons/wifi-off.svg");
+                }
+                wifi-excellent when AppStates.wifi_status == WifiStatus.Excellent: {
+                    source: @image-url("./icons/wifi-excellent.svg");
+                }
+                wifi-good when AppStates.wifi_status == WifiStatus.Good: {
+                    source: @image-url("./icons/wifi-good.svg");
+                }
+                wifi-fair when AppStates.wifi_status == WifiStatus.Fair: {
+                    source: @image-url("./icons/wifi-fair.svg");
+                }
+                wifi-poor when AppStates.wifi_status == WifiStatus.Poor: {
+                    source: @image-url("./icons/wifi-poor.svg");
+                }
+            ]
+        }
+
+        theme := Image {
+            states [
+                light when Theme.is_light: {
+                    source: @image-url("./icons/light.svg");
+                }
+                dark when !Theme.is_light: {
+                    source: @image-url("./icons/dark.svg");
+                }
+            ]
+            TouchArea {
+                clicked => {
+                    Theme.is_light = !Theme.is_light;
+                }
+            }
+        }
+
+        setting := Image {
+            source: @image-url("./icons/setting.svg");
+        }
+    }
+}
