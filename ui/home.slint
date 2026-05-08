@@ -1,53 +1,4 @@
 import { AppStates, AppTypes, Position, Theme } from "global.slint";
-export component DatetimeApp inherits Rectangle {
-    horizontal-stretch: 1;
-    height: 100%;
-
-    VerticalLayout {
-        alignment: center;
-
-        HorizontalLayout {
-            property <length> time_font_size: 8rem;
-            property <length> sec_font_size: 5rem;
-            property <length> sec_padding: 0.8rem;
-            alignment: center;
-
-            Text {
-                text: AppStates.datetime.h;
-                font-family: "Inter";
-                font-weight: 200;
-                font-size: time_font_size;
-            }
-
-            Text {
-                text: ":";
-                font-family: "Inter";
-                font-weight: 200;
-                font-size: time_font_size;
-            }
-
-            Text {
-                text: AppStates.datetime.m;
-                font-family: "Inter";
-                font-weight: 200;
-                font-size: time_font_size;
-            }
-
-            VerticalLayout {
-                width: sec_font_size * 0.6 * 2 + sec_padding;
-                alignment: end;
-                padding-left: sec_padding;
-                padding-bottom: sec_padding;
-                Text {
-                    text: AppStates.datetime.s;
-                    font-family: "Inter";
-                    font-weight: 400;
-                    font-size: sec_font_size;
-                }
-            }
-        }
-    }
-}
 
 component AppBase inherits Rectangle {
     in property <AppTypes> app_type: AppTypes.Other;
@@ -99,7 +50,7 @@ component App inherits Rectangle {
         x: floor(slot / 4) * Theme.home_width + Theme.grid_spacing,
         y: Theme.grid_spacing,
     };
-    property <duration> toggle_duration: 250ms;
+    property <duration> toggle_duration: 2000ms;
     property <bool> is_open: AppStates.opne_app == root.app_type;
     property <string> title: "アプリ";
 
@@ -133,7 +84,10 @@ component App inherits Rectangle {
             height: is_open ? 2rem : 0;
             opacity: is_open ? 1 : 0;
 
-            animate opacity { duration: toggle_duration; }
+            animate opacity {
+                duration: toggle_duration / 2;
+                delay: is_open ? toggle_duration / 2 : 0;
+            }
 
             Image {
                 x: 0;
@@ -221,5 +175,39 @@ export component Home inherits Rectangle {
             }
         }
     }
-}
 
+    HorizontalLayout {
+        width: 100%;
+        height: Theme.grid_spacing;
+        padding: 0.25rem;
+        alignment: center;
+        y: Theme.display_height - Theme.grid_spacing;
+        Rectangle {
+            width: layout.preferred-width;
+            height: 100%;
+            background: Theme.active.sub-bg;
+            border-radius: 0.5rem;
+
+            layout := HorizontalLayout {
+                property <length> space: 0.4rem;
+                alignment: center;
+                spacing: space;
+                padding-left: space;
+                padding-right: space;
+
+                for i in AppStates.num_page + 1: Rectangle {
+                    property <bool> is_active: i == current_page;
+                    property <length> size: 0.3rem;
+                    y: (parent.height - size) / 2;
+                    width: size;
+                    height: size;
+                    background: Theme.active.app-txt;
+                    opacity: is_active ? 1 : 0.4;
+                    border-radius: size;
+
+                    animate opacity { duration: 120ms; }
+                }
+            }
+        }
+    }
+}

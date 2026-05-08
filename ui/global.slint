@@ -28,7 +28,7 @@ export global Theme {
     out property <physical-length> home_width: (Theme.app_size * 2 + Theme.grid_spacing * 3);
 
     in-out property <bool> is_light: false;
-    in-out property <ClrThemeType> clr_theme: ClrThemeType.Neutral;
+    in-out property <ClrThemeType> clr_theme: ClrThemeType.Taupe;
 
     pure function get_active_props(t: ClrThemeType) -> ClrProps {
         if (t == ClrThemeType.Slate) {
