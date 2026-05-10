@@ -129,9 +129,15 @@ export component Home inherits Rectangle {
     width: Theme.home_width;
     height: 100%;
 
+    pure function get() {
+        
+    }
+
     sgr := SwipeGestureHandler {
         handle-swipe-right: AppStates.opne_app == AppTypes.None;
         handle-swipe-left: AppStates.opne_app == AppTypes.None;
+
+        
         swiped => {
             if (self.current-position.x > self.pressed-position.x + self.width / 4) && (root.current_page > 0) {
                 current-page -= 1;
@@ -187,6 +193,11 @@ export component Home inherits Rectangle {
             height: 100%;
             background: Theme.active.sub-bg;
             border-radius: 0.5rem;
+            opacity: sgr.swiping ? 1 : 0;
+
+            animate opacity {
+                duration: 120ms;
+            }
 
             layout := HorizontalLayout {
                 property <length> space: 0.4rem;
