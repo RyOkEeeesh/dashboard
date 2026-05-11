@@ -176,9 +176,21 @@ export global AppStates {
             app_type: AppTypes.Other,
             slot: 4,
         },
+        {
+            app_type: AppTypes.RoomTemp,
+            slot: 2,
+        },
+        {
+            app_type: AppTypes.RoomTemp,
+            slot: 5,
+        },
+        {
+            app_type: AppTypes.RoomTemp,
+            slot: 9,
+        }
     ];
-    in-out property <int> num_page: 1;
-    in-out property <AppTypes> opne_app: AppTypes.None;
+    in-out property <int> num_page: 2;
+    in-out property <AppTypes> open_app: AppTypes.None;
     in property <bool> can_bme_use;
     in property <WeatherDataUi> bme_result;
 }

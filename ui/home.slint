@@ -2,19 +2,19 @@ import { AppStates, AppTypes, Position, Theme } from "global.slint";
 
 component AppBase inherits Rectangle {
     in property <AppTypes> app_type: AppTypes.Other;
-    out property <bool> is_open: AppStates.opne_app == root.app_type;
+    out property <bool> is_open: AppStates.open_app == root.app_type;
     width: 100%;
     height: 100%;
 
     callback open_touch();
 
     TouchArea {
-        visible: is_open || AppStates.opne_app == AppTypes.None;
+        visible: is_open || AppStates.open_app == AppTypes.None;
         clicked => {
             if is_open {
                 open_touch();
             } else {
-                AppStates.opne_app = app_type;
+                AppStates.open_app = app_type;
             }
         }
     }
@@ -50,8 +50,8 @@ component App inherits Rectangle {
         x: floor(slot / 4) * Theme.home_width + Theme.grid_spacing,
         y: Theme.grid_spacing,
     };
-    property <duration> toggle_duration: 2000ms;
-    property <bool> is_open: AppStates.opne_app == root.app_type;
+    property <duration> toggle_duration: 250ms;
+    property <bool> is_open: AppStates.open_app == root.app_type;
     property <string> title: "アプリ";
 
     states [
@@ -98,7 +98,7 @@ component App inherits Rectangle {
 
                 TouchArea {
                     clicked => {
-                        AppStates.opne_app = AppTypes.None;
+                        AppStates.open_app = AppTypes.None;
                     }
                 }
             }
@@ -125,28 +125,32 @@ component App inherits Rectangle {
 
 export component Home inherits Rectangle {
     property <int> current_page: 0;
+
     clip: true;
     width: Theme.home_width;
     height: 100%;
 
-    pure function get() {
-        
-    }
-
     sgr := SwipeGestureHandler {
-        handle-swipe-right: AppStates.opne_app == AppTypes.None;
-        handle-swipe-left: AppStates.opne_app == AppTypes.None;
+        handle-swipe-right: AppStates.open_app == AppTypes.None;
+        handle-swipe-left: AppStates.open_app == AppTypes.None;
 
-        
         swiped => {
-            if (self.current-position.x > self.pressed-position.x + self.width / 4) && (root.current_page > 0) {
-                current-page -= 1;
-            } else if (self.current-position.x < self.pressed-position.x - self.width / 4) && (root.current_page < AppStates.num_page) {
-                current-page += 1;
-            }
+            let delta_x = self.current-position.x - self.pressed-position.x;
+            let width = root.width;
+
+            let ratio = -delta_x / width;
+
+            let base_move = floor(Math.abs(ratio)) * (ratio > 0 ? 1 : -1);
+            let rem = ratio - base_move;
+
+            let extra = (Math.abs(rem) > 0.25) ? ((rem > 0) ? 1 : -1) : 0;
+
+            let target_page = root.current_page + base_move + extra;
+
+            root.current_page = Math.max(0, Math.min(AppStates.num_page, target_page));
         }
 
-        Rectangle {
+        contant := Rectangle {
             property <length> position: - current-page * root.width;
             animate position {
                 duration: 200ms;
@@ -180,43 +184,45 @@ export component Home inherits Rectangle {
                 slot: app.slot;
             }
         }
-    }
 
-    HorizontalLayout {
-        width: 100%;
-        height: Theme.grid_spacing;
-        padding: 0.25rem;
-        alignment: center;
-        y: Theme.display_height - Theme.grid_spacing;
-        Rectangle {
-            width: layout.preferred-width;
-            height: 100%;
-            background: Theme.active.sub-bg;
-            border-radius: 0.5rem;
-            opacity: sgr.swiping ? 1 : 0;
+        HorizontalLayout {
+            width: 100%;
+            height: Theme.grid_spacing;
+            padding: 0.25rem;
+            alignment: center;
+            y: Theme.display_height - Theme.grid_spacing;
 
-            animate opacity {
-                duration: 120ms;
-            }
+            Rectangle {
+                width: layout.preferred-width;
+                height: 100%;
+                background: Theme.active.sub-bg;
+                border-radius: 0.5rem;
+                opacity: sgr.swiping ? 1 : 0;
 
-            layout := HorizontalLayout {
-                property <length> space: 0.4rem;
-                alignment: center;
-                spacing: space;
-                padding-left: space;
-                padding-right: space;
+                animate opacity {
+                    duration: sgr.swiping ? 30ms : 75ms;
+                    delay: sgr.swiping ? 0 : 700ms;
+                }
 
-                for i in AppStates.num_page + 1: Rectangle {
-                    property <bool> is_active: i == current_page;
-                    property <length> size: 0.3rem;
-                    y: (parent.height - size) / 2;
-                    width: size;
-                    height: size;
-                    background: Theme.active.app-txt;
-                    opacity: is_active ? 1 : 0.4;
-                    border-radius: size;
+                layout := HorizontalLayout {
+                    property <length> space: 0.4rem;
+                    alignment: center;
+                    spacing: space;
+                    padding-left: space;
+                    padding-right: space;
 
-                    animate opacity { duration: 120ms; }
+                    for i in AppStates.num_page + 1: Rectangle {
+                        property <bool> is_active: sgr.swiping ? Math.round(-contant.x / Theme.home_width) == i : i == current_page;
+                        property <length> size: 0.3rem;
+                        y: (parent.height - size) / 2;
+                        width: size;
+                        height: size;
+                        background: Theme.active.app-txt;
+                        opacity: is_active ? 1 : 0.4;
+                        border-radius: size;
+
+                        animate opacity { duration: 120ms; }
+                    }
                 }
             }
         }

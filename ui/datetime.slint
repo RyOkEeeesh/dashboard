@@ -11,27 +11,12 @@ export component DatetimeApp inherits Rectangle {
         HorizontalLayout {
             property <length> time_font_size: 8rem;
             property <length> sec_font_size: 5rem;
-            property <length> sec_padding: 0.8rem;
+
             alignment: center;
+            spacing: 1rem;
 
             Text {
-                text: AppStates.datetime.h;
-                font-family: "Inter";
-                font-weight: 200;
-                font-size: time_font_size;
-                color: Theme.active.main-txt;
-            }
-
-            Text {
-                text: ":";
-                font-family: "Inter";
-                font-weight: 200;
-                font-size: time_font_size;
-                color: Theme.active.main-txt;
-            }
-
-            Text {
-                text: AppStates.datetime.m;
+                text: AppStates.datetime.h + ":" + AppStates.datetime.m;
                 font-family: "Inter";
                 font-weight: 200;
                 font-size: time_font_size;
@@ -39,10 +24,9 @@ export component DatetimeApp inherits Rectangle {
             }
 
             VerticalLayout {
-                width: sec_font_size * 0.6 * 2 + sec_padding;
+                width: sec_font_size * 0.7 * 2;
                 alignment: end;
-                padding-left: sec_padding;
-                padding-bottom: sec_padding;
+                padding-bottom: 0.7rem;
                 Text {
                     text: AppStates.datetime.s;
                     font-family: "Inter";
