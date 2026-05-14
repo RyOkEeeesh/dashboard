@@ -131,7 +131,6 @@ export struct DatetimeState {
     s: string,
 }
 
-
 export enum WifiStatus {
     Add,
     Bad,
@@ -167,29 +166,14 @@ export struct WeatherDataUi {
 export global AppStates {
     in-out property <DatetimeState> datetime;
     in-out property <WifiStatus> wifi_status;
-    in-out property <[AppData]> apps: [
-        {
-            app_type: AppTypes.RoomTemp,
-            slot: 3,
-        },
-        {
-            app_type: AppTypes.Other,
-            slot: 4,
-        },
-        {
-            app_type: AppTypes.RoomTemp,
-            slot: 2,
-        },
-        {
-            app_type: AppTypes.RoomTemp,
-            slot: 5,
-        },
-        {
-            app_type: AppTypes.RoomTemp,
-            slot: 9,
-        }
-    ];
-    in-out property <int> num_page: 2;
+    in-out property <[AppData]> apps: [{
+        app_type: AppTypes.RoomTemp,
+        slot: 3,
+    }, {
+        app_type: AppTypes.Other,
+        slot: 4,
+    }];
+    in-out property <int> num_page: 1;
     in-out property <AppTypes> open_app: AppTypes.None;
     in property <bool> can_bme_use;
     in property <WeatherDataUi> bme_result;

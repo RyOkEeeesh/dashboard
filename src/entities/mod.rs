@@ -2,4 +2,5 @@
 
 pub mod prelude;
 
+pub mod app_slot;
 pub mod room_temp;

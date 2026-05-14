@@ -1,6 +1,7 @@
 mod ui {
     slint::include_modules!();
 }
+use slint::Model;
 use ui::*;
 
 use chrono::{Local, Timelike};
@@ -20,6 +21,10 @@ async fn main() {
     let ui = Main::new().unwrap();
     let ui_weak = ui.as_weak();
 
+    let mut apps: Vec<AppData> = ui.global::<AppStates>().get_apps().iter().collect();
+
+    
+
     let bme_result = Bme::new();
     if bme_result.is_ok() {
         ui.global::<AppStates>().set_can_bme_use(true);
@@ -28,9 +33,9 @@ async fn main() {
     let bme_mod = Arc::new(Mutex::new(bme_result));
 
     // init
-    ui.global::<AppStates>().set_datetime(to_ui_datetime(Local::now()));
+    ui.global::<AppStates>()
+        .set_datetime(to_ui_datetime(Local::now()));
 
-    // 秒数がちょうど切り替わるタイミングまで待つ
     let sleep_ms = (1_000_000_000 - Local::now().nanosecond()) / 1_000_000;
     if sleep_ms > 0 {
         tokio::time::sleep(std::time::Duration::from_millis(sleep_ms as u64)).await;
