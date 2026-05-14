@@ -1,4 +1,7 @@
-use sea_orm::{Database, DatabaseConnection, DbErr, EntityTrait, NotSet, Set};
+use sea_orm::{
+    ConnectionTrait, Database, DatabaseConnection, DbErr, EntityTrait, NotSet, Set, Statement,
+};
+use std::fs;
 use tokio::sync::{mpsc, oneshot};
 
 use crate::bme::WeatherData;
@@ -15,7 +18,14 @@ pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
         while let Some(request) = rx.recv().await {
             match request {
                 DbRequest::SaveWeather(data) => {
-                    if matches!(data, WeatherData { temp: None, humidity: None, pressure: None }) {
+                    if matches!(
+                        data,
+                        WeatherData {
+                            temp: None,
+                            humidity: None,
+                            pressure: None
+                        }
+                    ) {
                         return;
                     }
                     let active_model = room_temp::ActiveModel {
@@ -39,7 +49,7 @@ pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
 
 async fn dbconn() -> Result<DatabaseConnection, DbErr> {
     let db_path = if cfg!(debug_assertions) {
-        "local.db"
+        "db/local.db"
     } else {
         "/var/lib/dashboard/local.db"
     };
@@ -52,19 +62,8 @@ async fn dbconn() -> Result<DatabaseConnection, DbErr> {
 
             let db = Database::connect(&db_url).await?;
 
-            let sql = r#"
-                CREATE TABLE room_temp (
-                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                    temp FLOAT,
-                    humidity FLOAT,
-                    pressure FLOAT,
-                    updated_at DATETIME NOT NULL DEFAULT (datetime('now', 'localtime'))
-                );
-                "#;
-
-            use sea_orm::{ConnectionTrait, Statement};
-            db.execute(Statement::from_string(db.get_database_backend(), sql))
-                .await?;
+            let sql = fs::read_to_string("db/setting.sql").unwrap();
+            db.execute(Statement::from_string(db.get_database_backend(), sql)).await?;
 
             Ok(db)
         }

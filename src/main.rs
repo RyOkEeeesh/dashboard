@@ -18,12 +18,8 @@ async fn main() {
 
     db_run(rx);
 
-    let ui = Main::new().unwrap();
+    let ui: Main = Main::new().unwrap();
     let ui_weak = ui.as_weak();
-
-    let mut apps: Vec<AppData> = ui.global::<AppStates>().get_apps().iter().collect();
-
-    
 
     let bme_result = Bme::new();
     if bme_result.is_ok() {
@@ -33,8 +29,8 @@ async fn main() {
     let bme_mod = Arc::new(Mutex::new(bme_result));
 
     // init
-    ui.global::<AppStates>()
-        .set_datetime(to_ui_datetime(Local::now()));
+    set_datetime(&ui);
+    apps_alignment(&ui);
 
     let sleep_ms = (1_000_000_000 - Local::now().nanosecond()) / 1_000_000;
     if sleep_ms > 0 {
@@ -51,12 +47,8 @@ async fn main() {
             Job::new("*/1 * * * * *", move |_id, _lock| {
                 let ui_weak = ui_weak_job_datetime.clone();
                 tokio::spawn(async move {
-                    let state = to_ui_datetime(Local::now());
-
                     ui_weak
-                        .upgrade_in_event_loop(move |ui| {
-                            ui.global::<AppStates>().set_datetime(state);
-                        })
+                        .upgrade_in_event_loop(move |ui| set_datetime(&ui))
                         .ok();
                 });
             })
@@ -99,6 +91,16 @@ async fn main() {
 
     sched.start().await.unwrap();
     ui.run().unwrap();
+}
+
+fn set_datetime(ui: &Main) {
+    ui.global::<AppStates>()
+        .set_datetime(to_ui_datetime(Local::now()));
+}
+
+fn apps_alignment(ui: &Main) {
+    let apps: Vec<AppData> = ui.global::<AppStates>().get_apps().iter().collect();
+    
 }
 
 fn to_ui_datetime(time: chrono::DateTime<Local>) -> DatetimeState {
