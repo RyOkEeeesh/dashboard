@@ -1,15 +1,21 @@
 use sea_orm::{
     ConnectionTrait, Database, DatabaseConnection, DbErr, EntityTrait, NotSet, Set, Statement,
 };
-use std::fs;
+use std::{fs, path::Path};
 use tokio::sync::{mpsc, oneshot};
 
 use crate::bme::WeatherData;
 use crate::entities::room_temp;
 
+pub struct Date {
+    pub y: i32,
+    pub m: i32,
+    pub d: i32,
+}
+
 pub enum DbRequest {
-    SaveWeather(WeatherData),
-    GetHistory(oneshot::Sender<Vec<room_temp::Model>>),
+    SetTemp(WeatherData),
+    GetTemp(oneshot::Sender<Vec<room_temp::Model>>, Date),
 }
 
 pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
@@ -17,7 +23,7 @@ pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
         let db = dbconn().await.expect("Failed to connect DB");
         while let Some(request) = rx.recv().await {
             match request {
-                DbRequest::SaveWeather(data) => {
+                DbRequest::SetTemp(data) => {
                     if matches!(
                         data,
                         WeatherData {
@@ -26,7 +32,7 @@ pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
                             pressure: None
                         }
                     ) {
-                        return;
+                        continue;
                     }
                     let active_model = room_temp::ActiveModel {
                         id: NotSet,
@@ -37,7 +43,7 @@ pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
                     };
                     let _ = room_temp::Entity::insert(active_model).exec(&db).await;
                 }
-                DbRequest::GetHistory(respond_to) => {
+                DbRequest::GetTemp(respond_to, date) => {
                     if let Ok(history) = room_temp::Entity::find().all(&db).await {
                         let _ = respond_to.send(history);
                     }
@@ -58,12 +64,17 @@ async fn dbconn() -> Result<DatabaseConnection, DbErr> {
     match Database::connect(&db_url).await {
         Ok(db) => Ok(db),
         Err(_) => {
-            let _ = std::fs::File::create(db_path);
+            if let Some(parent) = Path::new(db_path).parent() {
+                let _ = fs::create_dir_all(parent);
+            }
+
+            let _ = fs::File::create(db_path);
 
             let db = Database::connect(&db_url).await?;
 
-            let sql = fs::read_to_string("db/setting.sql").unwrap();
-            db.execute(Statement::from_string(db.get_database_backend(), sql)).await?;
+            let sql = include_str!("../db/setting.sql");
+            db.execute(Statement::from_string(db.get_database_backend(), sql))
+                .await?;
 
             Ok(db)
         }

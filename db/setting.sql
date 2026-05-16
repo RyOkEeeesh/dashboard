@@ -3,7 +3,7 @@ CREATE TABLE room_temp (
   temp FLOAT,
   humidity FLOAT,
   pressure FLOAT,
-  updated_at DATETIME NOT NULL DEFAULT (datetime('now', 'localtime'))
+  updated_at DATETIME DEFAULT (datetime('now', '+9 hours'))
 );
 
 CREATE TABLE app_slot (

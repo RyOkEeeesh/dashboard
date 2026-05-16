@@ -5,6 +5,7 @@ use slint::Model;
 use ui::*;
 
 use chrono::{Local, Timelike};
+use std::result;
 use std::sync::Arc;
 use tokio::sync::{Mutex, mpsc};
 use tokio_cron_scheduler::{Job, JobScheduler};
@@ -79,8 +80,11 @@ async fn main() {
                                         .set_bme_result(to_ui_weather_data(ui_result))
                                 })
                                 .ok();
-                            let _ = tx.try_send(DbRequest::SaveWeather(result));
+                            let _ = tx.try_send(DbRequest::SetTemp(result));
                         }
+                    } else {
+                        let result = WeatherData { temp: Some(15.6), humidity: Some(32.0), pressure: Some(1013.2) };
+                        let _ = tx.try_send(DbRequest::SetTemp(result));
                     }
                 });
             })
