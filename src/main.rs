@@ -1,17 +1,17 @@
 mod ui {
     slint::include_modules!();
 }
+use dashboard::entities::room_temp;
 use slint::Model;
 use ui::*;
 
 use chrono::{Local, Timelike};
-use std::result;
 use std::sync::Arc;
-use tokio::sync::{Mutex, mpsc};
+use tokio::sync::{Mutex, mpsc, oneshot};
 use tokio_cron_scheduler::{Job, JobScheduler};
 
 use dashboard::bme::{Bme, WeatherData};
-use dashboard::db::{DbRequest, db_run};
+use dashboard::db::{Date, DbRequest, db_run};
 
 #[tokio::main]
 async fn main() {
@@ -42,6 +42,8 @@ async fn main() {
 
     // datetime
     let ui_weak_job_datetime = ui_weak.clone();
+
+    get_temp_data(tx.clone(), Date(2026, 5, 16)).await;
 
     sched
         .add(
@@ -83,7 +85,11 @@ async fn main() {
                             let _ = tx.try_send(DbRequest::SetTemp(result));
                         }
                     } else {
-                        let result = WeatherData { temp: Some(15.6), humidity: Some(32.0), pressure: Some(1013.2) };
+                        let result = WeatherData {
+                            temp: Some(15.6),
+                            humidity: Some(32.0),
+                            pressure: Some(1013.2),
+                        };
                         let _ = tx.try_send(DbRequest::SetTemp(result));
                     }
                 });
@@ -95,6 +101,19 @@ async fn main() {
 
     sched.start().await.unwrap();
     ui.run().unwrap();
+
+}
+
+async fn get_temp_data(tx: mpsc::Sender<DbRequest>, date: Date) {
+    let (tx_oneshot, rx_oneshot) = oneshot::channel::<Vec<room_temp::Model>>();
+    tx.send(DbRequest::GetTemp(tx_oneshot, date)).await.unwrap();
+
+    match rx_oneshot.await {
+        Ok(data) => {
+            dbg!(data);
+        },
+        Err(e) => eprint!("{e}"),
+    }
 }
 
 fn set_datetime(ui: &Main) {
@@ -104,7 +123,6 @@ fn set_datetime(ui: &Main) {
 
 fn apps_alignment(ui: &Main) {
     let apps: Vec<AppData> = ui.global::<AppStates>().get_apps().iter().collect();
-    
 }
 
 fn to_ui_datetime(time: chrono::DateTime<Local>) -> DatetimeState {

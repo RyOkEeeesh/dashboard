@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-sea-orm = { version = "1.1", features = [ 
+sea-orm = { version = "2.0.0-rc", features = [ 
     "sqlx-sqlite", 
     "runtime-tokio-native-tls", 
     "macros",
@@ -13,8 +13,9 @@ sea-orm = { version = "1.1", features = [
 chrono = "0.4"
 tokio = { version = "1.0", features = ["full"] }
 dotenvy = "0.15.7"
-slint = "=1.15.1"
+slint = { version = "=1.15.1", features = ["unsafe-single-threaded"] }
 tokio-cron-scheduler = "0.15.1"
+strum = { version = "0.28.0", features = ["derive"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 bme280-rs = "0.3"
