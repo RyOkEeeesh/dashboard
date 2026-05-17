@@ -1,7 +1,17 @@
+use std::sync::Arc;
+
 #[cfg(target_os = "linux")]
 use bme280_rs::{Bme280, Configuration, Oversampling, SensorMode};
 #[cfg(target_os = "linux")]
 use linux_embedded_hal::{Delay, I2cdev};
+
+use crate::{
+    db::DbRequest,
+    ui::{AppStates, Main, WeatherDataUi},
+};
+use slint::{ComponentHandle, Weak};
+use tokio::sync::{Mutex, mpsc::Sender};
+use tokio_cron_scheduler::{Job, JobScheduler};
 
 #[derive(Clone)]
 pub struct WeatherData {
@@ -58,5 +68,66 @@ impl Bme {
                 pressure: None,
             })
         }
+    }
+}
+
+pub async fn run_bme(
+    sched: &JobScheduler,
+    ui: Weak<Main>,
+    bme: Arc<Mutex<Result<Bme, ()>>>,
+    tx: Sender<DbRequest>,
+) {
+    sched
+        .add(
+            Job::new("*/5 * * * * *", move |_id, _lock| {
+                let ui_weak = ui.clone();
+                let bme_lock = bme.clone();
+                let tx = tx.clone();
+
+                tokio::spawn(async move {
+                    if let Ok(ref mut bme) = *bme_lock.lock().await {
+                        if let Ok(result) = bme.read_weather() {
+                            let ui_result = result.clone();
+                            ui_weak
+                                .upgrade_in_event_loop(move |ui| {
+                                    ui.global::<AppStates>()
+                                        .set_bme_result(to_ui_weather_data(ui_result))
+                                })
+                                .ok();
+                            let _ = tx.try_send(DbRequest::SetTemp(result));
+                        }
+                    } else {
+                        let result = WeatherData {
+                            temp: Some(15.6),
+                            humidity: Some(32.0),
+                            pressure: Some(1013.2),
+                        };
+                        let _ = tx.try_send(DbRequest::SetTemp(result));
+                    }
+                });
+            })
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+}
+
+fn to_ui_weather_data(wd: WeatherData) -> WeatherDataUi {
+    WeatherDataUi {
+        temp: wd
+            .temp
+            .map(|t| format!("{:.1}", t))
+            .unwrap_or_else(|| "--".to_string())
+            .into(),
+        humidity: wd
+            .humidity
+            .map(|t| format!("{:.1}", t))
+            .unwrap_or_else(|| "--".to_string())
+            .into(),
+        pressure: wd
+            .pressure
+            .map(|t| format!("{:.1}", t))
+            .unwrap_or_else(|| "--".to_string())
+            .into(),
     }
 }
