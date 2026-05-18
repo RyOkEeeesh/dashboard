@@ -164,16 +164,17 @@ export struct WeatherDataUi {
 }
 
 export global AppStates {
+    out property <int> app_limit: 4;
     in-out property <DatetimeState> datetime;
     in-out property <WifiStatus> wifi_status;
     in-out property <[AppData]> apps: [{
         app_type: AppTypes.RoomTemp,
-        slot: 3,
+        slot: -1,
     }, {
         app_type: AppTypes.Other,
-        slot: 4,
+        slot: -1,
     }];
-    in-out property <int> num_page: 1;
+    in-out property <int> num_page: 0;
     in-out property <AppTypes> open_app: AppTypes.None;
     in property <bool> can_bme_use;
     in property <WeatherDataUi> bme_result;

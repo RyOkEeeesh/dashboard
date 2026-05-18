@@ -96,13 +96,6 @@ pub async fn run_bme(
                                 .ok();
                             let _ = tx.try_send(DbRequest::SetTemp(result));
                         }
-                    } else {
-                        let result = WeatherData {
-                            temp: Some(15.6),
-                            humidity: Some(32.0),
-                            pressure: Some(1013.2),
-                        };
-                        let _ = tx.try_send(DbRequest::SetTemp(result));
                     }
                 });
             })

@@ -1,6 +1,7 @@
 use dashboard::datetime::{run_datetime, set_datetime};
 use dashboard::entities::room_temp;
-use slint::{ComponentHandle, Model};
+use dashboard::home::setup_home;
+use slint::ComponentHandle;
 
 use chrono::{Local, Timelike};
 use std::sync::Arc;
@@ -9,7 +10,7 @@ use tokio_cron_scheduler::JobScheduler;
 
 use dashboard::bme::{Bme, run_bme};
 use dashboard::db::{Date, DbRequest, db_run};
-use dashboard::ui::{AppData, AppStates, Main};
+use dashboard::ui::{AppStates, Main};
 
 #[tokio::main]
 async fn main() {
@@ -18,7 +19,6 @@ async fn main() {
     db_run(rx);
 
     let ui: Main = Main::new().unwrap();
-    let ui_weak = ui.as_weak();
 
     let bme_result = Bme::new();
     if bme_result.is_ok() {
@@ -29,13 +29,15 @@ async fn main() {
 
     // init
     set_datetime(&ui);
-    apps_alignment(&ui);
-
-    wait().await;
+    setup_home(tx.clone(), &ui).await;
 
     get_temp_data(tx.clone(), Date(2026, 5, 16)).await;
 
+    //
+    wait().await;
+
     let sched: JobScheduler = JobScheduler::new().await.unwrap();
+    let ui_weak = ui.as_weak();
 
     // datetime
     run_datetime(&sched, ui_weak.clone()).await;
@@ -64,8 +66,4 @@ async fn get_temp_data(tx: mpsc::Sender<DbRequest>, date: Date) {
         }
         Err(e) => eprint!("{e}"),
     }
-}
-
-fn apps_alignment(ui: &Main) {
-    let apps: Vec<AppData> = ui.global::<AppStates>().get_apps().iter().collect();
 }

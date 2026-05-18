@@ -43,11 +43,11 @@ component App inherits Rectangle {
     in property <int> slot;
 
     property <Position> pos: {
-        x: floor(slot / 4) * Theme.home_width + Theme.grid_spacing + mod(slot, 2) * (Theme.app_size + Theme.grid_spacing),
-        y: Theme.grid_spacing + floor(mod(slot, 4) / 2) * (Theme.app_size + Theme.grid_spacing),
+        x: floor(slot / AppStates.app_limit) * Theme.home_width + Theme.grid_spacing + mod(slot, 2) * (Theme.app_size + Theme.grid_spacing),
+        y: Theme.grid_spacing + floor(mod(slot, AppStates.app_limit) / 2) * (Theme.app_size + Theme.grid_spacing),
     };
     property <Position> pos_open: {
-        x: floor(slot / 4) * Theme.home_width + Theme.grid_spacing,
+        x: floor(slot / AppStates.app_limit) * Theme.home_width + Theme.grid_spacing,
         y: Theme.grid_spacing,
     };
     property <duration> toggle_duration: 250ms;

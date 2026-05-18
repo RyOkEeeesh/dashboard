@@ -7,7 +7,7 @@ use std::{fs, path::Path};
 use tokio::sync::{mpsc, oneshot};
 
 use crate::bme::WeatherData;
-use crate::entities::room_temp;
+use crate::entities::{app_slot, room_temp};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Date(pub i32, pub u32, pub u32);
@@ -16,7 +16,7 @@ pub enum DbRequest {
     SetTemp(WeatherData),
     GetTemp(oneshot::Sender<Vec<room_temp::Model>>, Date),
     SetApps(),
-    GetApps(oneshot::Sender<Vec<room_temp::Model>>),
+    GetApps(oneshot::Sender<Vec<app_slot::Model>>),
 }
 
 pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
@@ -75,7 +75,12 @@ pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
                     }
                 }
                 DbRequest::SetApps() => {}
-                DbRequest::GetApps(respond_to) => {}
+                DbRequest::GetApps(respond_to) => {
+                    let app_slot = app_slot::Entity::find().all(&db).await;
+                    if let Ok(data) = app_slot {
+                        let _ = respond_to.send(data);
+                    }
+                }
             }
         }
     });
