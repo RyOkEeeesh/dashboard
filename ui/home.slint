@@ -147,7 +147,7 @@ export component Home inherits Rectangle {
 
             let target_page = root.current_page + base_move + extra;
 
-            root.current_page = Math.max(0, Math.min(AppStates.num_page, target_page));
+            root.current_page = Math.max(0, Math.min(AppStates.page_num, target_page));
         }
 
         contant := Rectangle {
@@ -157,14 +157,14 @@ export component Home inherits Rectangle {
                 easing: ease-out-circ;
             }
             property <physical-length> max_left_offset: root.current_page * root.width;
-            property <physical-length> max_right_offset: (AppStates.num_page - root.current_page) * root.width;
+            property <physical-length> max_right_offset: (AppStates.page_num - root.current_page) * root.width;
             property <physical-length> limit: root.width / 5;
             property <physical-length> delta_x: sgr.current-position.x - sgr.pressed-position.x;
             property <physical-length> over_delta: (delta_x > max_left_offset) ? (delta_x - max_left_offset) : (delta_x < -max_right_offset) ? (delta_x + max_right_offset) : 0px;
             property <physical-length> elastic_offset: limit * (over_delta / (Math.abs(over_delta) + limit * 2));
             property <physical-length> swipe-offset;
 
-            width: Theme.home_width * (AppStates.num_page + 1);
+            width: Theme.home_width * (AppStates.page_num + 1);
             height: 100%;
             x: position + swipe-offset;
             states [
@@ -193,6 +193,7 @@ export component Home inherits Rectangle {
             y: Theme.display_height - Theme.grid_spacing;
 
             Rectangle {
+                visible: AppStates.page_num > 0;
                 width: layout.preferred-width;
                 height: 100%;
                 background: Theme.active.sub-bg;
@@ -211,7 +212,7 @@ export component Home inherits Rectangle {
                     padding-left: space;
                     padding-right: space;
 
-                    for i in AppStates.num_page + 1: Rectangle {
+                    for i in AppStates.page_num + 1: Rectangle {
                         property <bool> is_active: sgr.swiping ? Math.round(-contant.x / Theme.home_width) == i : i == current_page;
                         property <length> size: 0.3rem;
                         y: (parent.height - size) / 2;
@@ -228,4 +229,3 @@ export component Home inherits Rectangle {
         }
     }
 }
-
