@@ -8,7 +8,7 @@ CREATE TABLE room_temp (
 
 CREATE TABLE app_slot (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  app_name TEXT NOT NULL,
+  app_name TEXT NOT NULL UNIQUE,
   slot INTEGER NOT NULL
 );
 

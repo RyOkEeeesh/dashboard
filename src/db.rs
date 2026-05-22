@@ -1,4 +1,5 @@
 use chrono::{FixedOffset, TimeZone};
+use sea_orm::sea_query::OnConflict;
 use sea_orm::{
     ConnectionTrait, Database, DatabaseConnection, DbBackend, DbErr, EntityTrait, NotSet, Set,
     Statement,
@@ -8,6 +9,7 @@ use tokio::sync::{mpsc, oneshot};
 
 use crate::bme::WeatherData;
 use crate::entities::{app_slot, room_temp};
+use crate::ui::AppData;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Date(pub i32, pub u32, pub u32);
@@ -15,7 +17,7 @@ pub struct Date(pub i32, pub u32, pub u32);
 pub enum DbRequest {
     SetTemp(WeatherData),
     GetTemp(oneshot::Sender<Vec<room_temp::Model>>, Date),
-    SetApps(),
+    SetApps(Vec<AppData>),
     GetApps(oneshot::Sender<Vec<app_slot::Model>>),
 }
 
@@ -74,7 +76,31 @@ pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
                         let _ = respond_to.send(data);
                     }
                 }
-                DbRequest::SetApps() => {}
+                DbRequest::SetApps(app_data) => {
+                    if app_data.is_empty() {
+                        println!("データが空なのでリターンします");
+                        return;
+                    }
+
+                    let mut data: Vec<app_slot::ActiveModel> = Vec::new();
+                    for app in app_data.iter() {
+                        let app_name_str = format!("{:?}", app.app_type);
+                        data.push(app_slot::ActiveModel {
+                            id: NotSet,
+                            app_name: Set(app_name_str),
+                            slot: Set(app.slot),
+                        });
+                    }
+
+                    let on_conflict = OnConflict::column(app_slot::Column::AppName)
+                        .update_column(app_slot::Column::Slot)
+                        .to_owned();
+
+                    let _ = app_slot::Entity::insert_many(data)
+                        .on_conflict(on_conflict)
+                        .exec(&db)
+                        .await;
+                }
                 DbRequest::GetApps(respond_to) => {
                     let app_slot = app_slot::Entity::find().all(&db).await;
                     if let Ok(data) = app_slot {

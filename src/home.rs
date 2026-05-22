@@ -74,6 +74,8 @@ let (tx_oneshot, rx_oneshot) = oneshot::channel::<Vec<app_slot::Model>>();
     let active_pages = page_status.iter().filter(|&&x| x).count();
     let page_num = if active_pages > 0 { active_pages - 1 } else { 0 };
 
+    let _ = tx.try_send(DbRequest::SetApps(final_apps.clone()));
+
     ui.global::<AppStates>().set_page_num(page_num as i32);
     ui.global::<AppStates>().set_apps(Rc::new(VecModel::from(final_apps)).into());
 
