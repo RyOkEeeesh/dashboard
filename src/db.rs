@@ -78,7 +78,6 @@ pub fn db_run(mut rx: mpsc::Receiver<DbRequest>) {
                 }
                 DbRequest::SetApps(app_data) => {
                     if app_data.is_empty() {
-                        println!("データが空なのでリターンします");
                         return;
                     }
 
